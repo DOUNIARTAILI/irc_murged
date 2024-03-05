@@ -100,7 +100,7 @@ void Server::parcing(int i){
     }
     std::cout << std::endl;
     std::cout << "end." << std::endl;
-    return commandparsed;
+    // return commandparsed;
 }
 // void Server::parcing(int i){
 //     // int i = getUserfromClientlist(fd);

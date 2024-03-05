@@ -339,24 +339,25 @@ void prv(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<C
         {
             if (cmd.privmsg_list[i][0] == '#')
             {
-                puts("dkhel");
-                std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), cmd.privmsg_list[i]);
+                std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.privmsg_list[i]));
                 if (it != chan.end())
                 {
                     j = 0;
                     while (j < it->user_list.size())
                     {
-                        std::string prvmsg = PRIVMSG(client.nickname, client.username, client.ip, it->user_list[j]->nickname, cmd.privmessage);
-                        write(it->user_list[j]->c_fd, prvmsg.c_str(), prvmsg.size());
-                        std::cout<<"user list inside the channel : "<<it->user_list[j]->nickname<<std::endl;
+                        if (it->user_list[j]->nickname != client.nickname)
+                        {
+                            std::string prvmsg = PRIVMSG(client.nickname, client.username, client.ip, it->name, cmd.privmessage);
+                            write(it->user_list[j]->c_fd, prvmsg.c_str(), prvmsg.size());
+                        }
                         j++;
                     }
                 }
-                // else
-                // {
-                //     std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.privmsg_list[i]);
-                //     write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
-                // }
+                else
+                {
+                    std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.privmsg_list[i]);
+                    write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
+                }
             }
             else
             {   
