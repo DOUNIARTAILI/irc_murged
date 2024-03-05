@@ -24,6 +24,7 @@ std::string my_hostname();
 
 //errors
 #define ERR_ALREADYREGISTERED(client) Hostname + " 462 " +  (client) + " " + " :You may not reregister\r\n"
+#define ERR_NOTREGISTERED(client) Hostname + " 451 " +  (client) + " " + " :You have not registered\r\n"
 #define ERR_ERRONEUSNICKNAME(client, command) Hostname + " 432 " +  (client) + " " + command + " ::Erroneus nickname\r\n"
 #define ERR_UNKNOWNCOMMAND(client, command) Hostname + " 421 " +  (client) + " " + (command) + " :Unknown command\r\n"
 #define ERR_NOSUCHNICK(client1, client2) Hostname + " 401 " + (client1) + " " + (client2) + " :No such nick\r\n"
@@ -32,6 +33,7 @@ std::string my_hostname();
 #define ERR_NOSUCHCHANNEL(client, channel)  Hostname + " 403 " + (client) + " " + (channel) + " :No such channel\r\n"
 #define ERR_NOTONCHANNEL(client, channel)  Hostname + " 442 " + (client) + " " + (channel) + " :You're not on that channel\r\n"
 #define ERR_PASSWDMISTACH(client) Hostname + " 464 " + (client) + " :Password incorrect\r\n"
+#define ERR_NOPASSGIVEN(client) Hostname  + " * :No password 1 given\r\n"
 #define ERR_CHANOPRIVSNEEDED(client, channel) Hostname +  " 482 " + (client) + " " + (channel) + " :You're not channel operator\r\n"
 #define ERR_USERONCHANNEL(client, nick, channel) Hostname + " 443 " + (client) + " " + (nick) + " " + (channel) + " :is already on channel\r\n"
 #define ERR_BADCHANMASK(channel)  Hostname + " 476 " + (channel) + " :Bad Channel Mask\r\n"
@@ -46,6 +48,7 @@ std::string my_hostname();
 #define ERR_ONEOUS(client, wrongnick) Hostname  +" 432 " + (client) + " " + (wrongnick) + " :Erroneous Nickname\r\n"
 #define ERROR_MSG(reason) Hostname + " " + (reason) + "\r\n"
 #define ERR_NOTEXTTOSEND(client) Hostname + " 412 " + (client) + " :No text to send\r\n"
+
 //commands 
 #define PRIVMSG(client, username, ipaddr, target, message) ":" + (client) + "!~" + (username) + "@" + (ipaddr) + " PRIVMSG " + (target) + " :" + (message) + "\r\n"
 #define NICK_MSG(client, username,ipaddr, newnick)  ":" + (client) + "!~" + (username) + "@"+ (ipaddr) + " NICK :"+(newnick) + "\r\n"

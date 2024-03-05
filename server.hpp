@@ -82,6 +82,19 @@ public:
         c_fd = fd;
         strcpy(this->ip, ip.c_str());
     }
+    void setUsername(const std::string &value)
+    {
+        this->username = value;
+    }
+    void setNickname(const std::string &value)
+    {
+        this->nickname = value;
+    }
+
+    void setRealname(const std::string &value)
+    {
+        this->realname = value;
+    }
     bool    operator==(const Clientx &c) const
     {
         if (this->nickname == c.nickname)
@@ -175,7 +188,7 @@ private:
     static std::vector<pollfd> pfds;
     std::vector<std::string>    cmds;        
     std::vector<Channel>        channels;
-    std::vector<std::string> commandparsed;
+    // std::vector<std::string> commandparsed;
 
     int listenerSock; 
 public:
@@ -202,4 +215,13 @@ public:
     std::string toupper(std::string &str);
     std::string trim(const std::string &str);
     std::vector<std::string> splitt(const std::string &str, char del);
+    void Authenticate(int fd);
+    void validatePass(std::string &str, int i);
+    void validateNick(std::string &str, int i);
+    void validateUser(std::string &str, int i);
+    int  nickalreadyexist(std::string nick);
+    void Register(int i);
+    void fdHandler(int i);
+    void clearVec(std::vector<std::string> &vec);
+    int getUserfromClientlist(int fd);
 };
