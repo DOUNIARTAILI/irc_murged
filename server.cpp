@@ -430,9 +430,9 @@ void Server::handleNewConnection(void)
         perror("accept");
     } else {
         add_to_pfds(newfdclient);
-        Clientx user;
-        user.c_fd = newfdclient;
-        clientsList.push_back(user);
+        // Clientx user;
+        // user.c_fd = newfdclient;
+        // clientsList.push_back(user);
 //         char ip4[INET_ADDRSTRLEN];  // space to hold the IPv4 string
 // struct sockaddr_in sa;      // pretend this is loaded with something
 
@@ -524,13 +524,8 @@ void Server::handleClientDataMsg(int fd)
         // buf[nbytes] = '\0';  // Ensure null-termination
         Command cmd;
         // cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
-        // if (this->clientsList[index].cmd.find("\r\n") != std::string::npos)
-        // {
-            // parcing(index);
-            // if (user.connected == true){
-            //     puts("no");
-            //     cmd.getcommand(user.cmd, this->channels, cmd, user, this->clientsList);
-            // }
+        if (this->clientsList[index].cmd.find("\n") != std::string::npos)
+        {
             if (this->clientsList[index].connected == true){
                 puts("no");
                 cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
@@ -558,7 +553,7 @@ void Server::handleClientDataMsg(int fd)
                 // }
             }
             this->clientsList[index].cmd = "";
-        // }
+        }
     }
 }
 
@@ -734,7 +729,7 @@ void Server::runServer()
 // }
 
 void Server::validatePass(std::string &str, Clientx &user){
-    if (user.pass == true){
+    if (user.connected == true){
         std::string rp = ERR_ALREADYREGISTERED(Server::hostname);
         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
         {
