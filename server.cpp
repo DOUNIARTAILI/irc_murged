@@ -69,38 +69,39 @@ std::string Server::trim(const std::string &str)
     return str.substr(leftPos, rightPos - leftPos + 1);
 }
 
-void Server::parcing(int i){
+std::vector<std::string>  Server::parcing(Clientx user){
     // int i = getUserfromClientlist(fd);
-    commandparsed.clear();
+    // commandparsed.clear();
+    std::vector<std::string> commandparsed;
     std::string word;
-    std::istringstream iss(clientsList[i].cmd);
+    std::istringstream iss(user.cmd);
     iss >> word;
     std::string firstarg = word;
 
 
-    clientsList[i].cmd = trim(clientsList[i].cmd);
-    // clientsList[i].cmd = toupper(clientsList[i].cmd);
-    std::istringstream ss(clientsList[i].cmd);
-    size_t npos = clientsList[i].cmd.find_first_of(" \t\n\r\v\f");
+    user.cmd = trim(user.cmd);
+    // user.cmd = toupper(user.cmd);
+    std::istringstream ss(user.cmd);
+    size_t npos = user.cmd.find_first_of(" \t\n\r\v\f");
     if (npos == std::string::npos){
         // puts("1");
         // commanddev.push_back(firstarg);
-        commandparsed.push_back(clientsList[i].cmd);
+        commandparsed.push_back(user.cmd);
     }
     else{
         // puts("2");
-        commandparsed.push_back(clientsList[i].cmd.substr(0, npos));
-        commandparsed.push_back(trim(clientsList[i].cmd.substr(npos)));
+        commandparsed.push_back(user.cmd.substr(0, npos));
+        commandparsed.push_back(trim(user.cmd.substr(npos)));
     }
-    std::cout << "command parsed : " << std::endl;
-    size_t j = 0;
-    while (j < commandparsed.size()){
-        std::cout << commandparsed[j] << " ";
-        j++;
-    }
-    std::cout << std::endl;
-    std::cout << "end." << std::endl;
-    // return commandparsed;
+    // std::cout << "command parsed : " << std::endl;
+    // size_t j = 0;
+    // while (j < commandparsed.size()){
+    //     std::cout << commandparsed[j] << " ";
+    //     j++;
+    // }
+    // std::cout << std::endl;
+    // std::cout << "end." << std::endl;
+    return commandparsed;
 }
 // void Server::parcing(int i){
 //     // int i = getUserfromClientlist(fd);
@@ -221,7 +222,7 @@ int  Server::nickalreadyexist(std::string nick)
 //                     cmds.clear();
 //                     return;        
 //                 }
-//                 s = checkExnick(this->cmds[1]);
+//                 s = checkExnick(cmds[1]);
 //                 if (s.length() != 0)
 //                 {
 //                     close(clientsList[i].c_fd);
@@ -483,8 +484,11 @@ void Server::handleClientDataMsg(int index)
     char buf[2048];    // Buffer for client data
     size_t nbytes = recv(pfds[index].fd, buf, sizeof buf, 0);
     buf[nbytes] = '\0';
-    this->clientsList[index].cmd += buf;
-    this->clientsList[index].c_fd = pfds[index].fd;
+    // Clientx user;
+    guest.c_fd = pfds[index].fd;
+    guest.cmd += buf;
+    // this->clientsList[index].cmd += buf;
+    // this->clientsList[index].c_fd = pfds[index].fd;
     for(size_t x = 0; x < channels.size(); x++)
     {
         if (channels[x].user_list.size() == 0)
@@ -511,15 +515,19 @@ void Server::handleClientDataMsg(int index)
 
     puts("1");
         // Process received data
-        buf[nbytes] = '\0';  // Ensure null-termination
+        // buf[nbytes] = '\0';  // Ensure null-termination
         Command cmd;
         // cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
         // if (this->clientsList[index].cmd.find("\r\n") != std::string::npos)
         // {
-            parcing(index);
-            if (this->clientsList[index].connected == true){
+            // parcing(index);
+            // if (user.connected == true){
+            //     puts("no");
+            //     cmd.getcommand(user.cmd, this->channels, cmd, user, this->clientsList);
+            // }
+            if (guest.connected == true){
                 puts("no");
-                cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
+                cmd.getcommand(guest.cmd, this->channels, cmd, guest, this->clientsList);
             }
             else
             {
@@ -527,7 +535,8 @@ void Server::handleClientDataMsg(int index)
                 // try {
                     puts("yup");
                     std::cout << "fd =>" << pfds[index].fd << std::endl;
-                    this->Authenticate(pfds[index].fd);
+                    this->Authenticate(guest);
+                    // this->Authenticate(pfds[index].fd, index);
                 // }
                 // catch (const std::exception &e)
                 // {
@@ -541,7 +550,7 @@ void Server::handleClientDataMsg(int index)
                 //     fdHandler(index);
                 // }
             }
-            this->clientsList[index].cmd = "";
+            guest.cmd = "";
         // }
     }
 }
@@ -717,10 +726,10 @@ void Server::runServer()
 //     commandparsed.clear();
 // }
 
-void Server::validatePass(std::string &str, int i){
-    if (clientsList[i].pass == true){
+void Server::validatePass(std::string &str, Clientx user){
+    if (user.pass == true){
         std::string rp = ERR_ALREADYREGISTERED(Server::hostname);
-        if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+        if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
         {
             perror("send");
         }
@@ -728,17 +737,41 @@ void Server::validatePass(std::string &str, int i){
     }
     std::vector<std::string> splited = this->splitt(str, ' ');
     if (splited.size() == 1){
-        if (splited[0] == this->PASS)
-            clientsList[i].pass = true;
+        if (splited[0] == this->PASS){
+            user.pass = true;
+            puts("normalement pass true db");
+        }
         else{
-            std::string rp = ERR_PASSWDMISTACH(clientsList[i].ip);
-            if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+            std::string rp = ERR_PASSWDMISTACH(user.ip);
+            if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
             {
                 perror("send");
             }
             // fdHandler(i);
         }
     }
+// void Server::validatePass(std::string &str, int i){
+//     if (clientsList[i].pass == true){
+//         std::string rp = ERR_ALREADYREGISTERED(Server::hostname);
+//         if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//         // fdHandler(i);
+//     }
+//     std::vector<std::string> splited = this->splitt(str, ' ');
+//     if (splited.size() == 1){
+//         if (splited[0] == this->PASS)
+//             clientsList[i].pass = true;
+//         else{
+//             std::string rp = ERR_PASSWDMISTACH(clientsList[i].ip);
+//             if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+//             {
+//                 perror("send");
+//             }
+//             // fdHandler(i);
+//         }
+//     }
 }
 
 int_fast16_t checkCHANTYPES(std::string &str){
@@ -752,13 +785,13 @@ int_fast16_t checkCHANTYPES(std::string &str){
     return 1;
 }
 
-void Server::validateNick(std::string &str, int i){
+void Server::validateNick(std::string &str, Clientx user){
     std::cout << "str " << str << std::endl; 
     std::vector<std::string> splited = this->splitt(str, ' ');
     std::cout << "splited[0] " << splited[0] << std::endl; 
     if (!checkCHANTYPES(str)){
-        std::string rp = ERR_ERRONEUSNICKNAME(clientsList[i].ip, "NICK");
-        if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+        std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
+        if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
         {
             perror("send");
         }
@@ -769,8 +802,8 @@ void Server::validateNick(std::string &str, int i){
             puts("here2");
             if (splited[0].size() > 15){
                 puts("here3");
-                std::string rp = ERR_ERRONEUSNICKNAME(clientsList[i].ip, "NICK");
-                if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+                std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
+                if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
                 {
                     perror("send");
                 }
@@ -778,19 +811,19 @@ void Server::validateNick(std::string &str, int i){
             }
             else{
                 puts("here4");
-                // clientsList[i].nickname = splited[0];
+                // user.nickname = splited[0];
                 if (!clientsList.empty()) {
-                    puts("yes dkhl");
-                    std::cout << "clientsList size " << clientsList.size() << std::endl; 
-                    std::cout << "i dyal clientsList  " << i << std::endl; 
-                    clientsList[i].setNickname(splited[0]);
+                    // puts("yes dkhl");
+                    // std::cout << "clientsList size " << clientsList.size() << std::endl; 
+                    // std::cout << "i dyal clientsList  " << i << std::endl; 
+                    user.setNickname(splited[0]);
                 }
                 puts("here5");
             }
         }
         else{
-            std::string rp = ERR_NICKINUSE(clientsList[i].ip, "NICK");
-            if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+            std::string rp = ERR_NICKINUSE(user.ip, "NICK");
+            if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
             {
                 perror("send");
             }
@@ -798,45 +831,57 @@ void Server::validateNick(std::string &str, int i){
         }
     }
 }
-void Server::validateUser(std::string &str, int i){
+void Server::validateUser(std::string &str, Clientx user){
     // user hala 0 * loka | strlen = 4
     std::vector<std::string> splited = this->splitt(str, ' ');
     if (splited.size() == 4){
-        if (clientsList[i].connected == false){
+        if (user.connected == false){
             if (splited[1] == "0" && splited[2] == "*"){
-                clientsList[i].username = splited[0];
-                clientsList[i].realname = splited[3];
+                user.username = splited[0];
+                user.realname = splited[3];
             }
         }
         else{
             std::string rp = ERR_ALREADYREGISTERED(Server::hostname);
-            if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+            if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
             {
                 perror("send");
             }
         }
     }
     else{
-        std::string rp = ERR_NEEDMOREPARAMS(clientsList[i].ip, "USER");
-        if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+        std::string rp = ERR_NEEDMOREPARAMS(user.ip, "USER");
+        if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
         {
             perror("send");
         }
     }
 }
 
-void Server::Register(int i)
+void Server::resetGuest()
 {
-    if (clientsList[i].nickname.empty() || clientsList[i].username.empty() || clientsList[i].pass == false)
+    this->guest.nickname = "";
+    this->guest.username = "";
+    this->guest.pass = false;
+    this->guest.connected = false;
+    this->guest.c_fd = -1;
+}
+
+void Server::Register(Clientx user)
+{
+    if (user.nickname.empty() || user.username.empty() || user.pass == false)
         return;
-    std::string rp = RPL_WELCOME(clientsList[i].nickname);
-    if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+    std::string rp = RPL_WELCOME(user.nickname);
+    if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
     {
         perror("send");
     }
     std::cout << "after replay" << std::endl;
-    std::cout << "nick "<< clientsList[i].nickname << " user " << clientsList[i].username << std::endl;
-    clientsList[i].connected = true;
+    std::cout << "nick "<< user.nickname << " user " << user.username << std::endl;
+    user.connected = true;
+    clientsList.push_back(user);
+
+    // user.connected = true;
 }
 
 // void Server::fdHandler(int i){
@@ -870,15 +915,15 @@ int Server::getUserfromClientlist(int fd){
     }
     return -1;
 }
-void Server::Authenticate(int fd)
+void Server::Authenticate(Clientx user)
 {
-    int i = getUserfromClientlist(fd);
-    std::vector<std::string> commandparsed = parcing(i);
-    std::string firstarg = toupper(this->commandparsed[0]);
-    std::cout << "this->commandparsed[0] " << this->commandparsed[0] << std::endl;
-    std::cout << "this->commandparsed[1] " << this->commandparsed[1] << std::endl;
+    // int i = getUserfromClientlist(fd);
+    std::vector<std::string> commandparsed = parcing(user);
+    std::string firstarg = toupper(commandparsed[0]);
+    std::cout << "commandparsed[0] " << commandparsed[0] << std::endl;
+    std::cout << "commandparsed[1] " << commandparsed[1] << std::endl;
     std::cout << "firstarg " << firstarg << std::endl;
-    std::cout << "i of my client " << i << std::endl;
+    // std::cout << "i of my client " << i << std::endl;
     std::string cmd[3]= {"PASS","NICK","USER"};
     int idx = 0;
     while(idx < 3)
@@ -890,11 +935,13 @@ void Server::Authenticate(int fd)
     switch(idx)
     {
         case 0:
-            if (!this->commandparsed[1].empty())
-                validatePass(this->commandparsed[1], i);
+            if (!commandparsed[1].empty()){
+                validatePass(commandparsed[1], user);
+                std::cout << "status dyal pass mora madkhal pass correcte " << user.pass << std::endl;
+            }
             else {
-                std::string rp = ERR_NEEDMOREPARAMS(clientsList[i].ip, "PASS");
-                if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+                std::string rp = ERR_NEEDMOREPARAMS(user.ip, "PASS");
+                if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
                 {
                     perror("send");
                 }
@@ -902,17 +949,18 @@ void Server::Authenticate(int fd)
             }
             break;
         case 1:
-            if (clientsList[i].pass == true){
-                std::cout << "this->commandparsed[1]|" << this->commandparsed[1] << "|"<< std::endl; 
-                if (!this->commandparsed[1].empty()){
+            std::cout << "status pass correcte nickkk " << user.pass << std::endl;
+            if (user.pass == true){
+                std::cout << "commandparsed[1]|" << commandparsed[1] << "|"<< std::endl; 
+                if (!commandparsed[1].empty()){
                     puts("some nickname given");
 
-                    validateNick(this->commandparsed[1], i);
+                    validateNick(commandparsed[1], user);
                 }
                 else {
                     puts("no nickname given");
-                    std::string rp = ERR_NONICKNAMEGIVEN(clientsList[i].ip);
-                    if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+                    std::string rp = ERR_NONICKNAMEGIVEN(user.ip);
+                    if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
                     {
                         perror("send");
                     }
@@ -920,40 +968,42 @@ void Server::Authenticate(int fd)
                 }
             }
             else{
-                std::string rp = ERR_NOPASSGIVEN(clientsList[i].ip);
-                if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+                std::cout << "status dyal pass f jiht nick " << user.pass << std::endl;
+                std::string rp = ERR_NOPASSGIVEN(user.ip);
+                if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
                 {
                     perror("send");
                 }
                 // fdHandler(i);
             }
-            Register(i);
+            Register(user);
             break;
         case 2:
-            if (clientsList[i].pass == true){
-                if (!this->commandparsed[1].empty())
-                    validateUser(this->commandparsed[1], i);
+            if (user.pass == true){
+                if (!commandparsed[1].empty())
+                    validateUser(commandparsed[1], user);
                 else {
-                    std::string rp = ERR_NEEDMOREPARAMS(clientsList[i].ip, "PASS");
-                    if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+                    std::string rp = ERR_NEEDMOREPARAMS(user.ip, "PASS");
+                    if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
                     {
                         perror("send");
                     }
                 }
             }
             else{
-                std::string rp = ERR_NOPASSGIVEN(clientsList[i].ip);
-                if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+                std::string rp = ERR_NOPASSGIVEN(user.ip);
+                if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
                 {
                     perror("send");
                 }
                 // fdHandler(i);
             }
-            Register(i);
+            Register(user);
             break;
         default :
-            std::string rp = ERR_NOTREGISTERED(clientsList[i].ip);
-            if (send(clientsList[i].c_fd, rp.c_str(), rp.length(), 0) == -1)
+            // std::cout << "status connected => " << clientsList[i].connected << std::endl;
+            std::string rp = ERR_UNKNOWNCOMMAND(user.ip, firstarg);
+            if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
             {
                 perror("send");
             }

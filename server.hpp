@@ -188,6 +188,7 @@ private:
     static std::vector<pollfd> pfds;
     std::vector<std::string>    cmds;        
     std::vector<Channel>        channels;
+    Clientx guest;
     // std::vector<std::string> commandparsed;
 
     int listenerSock; 
@@ -211,17 +212,21 @@ public:
     std::string    checkExnick(std::string nick);
     void runServer();
     void addUser(int fd, std::string ip);
-    void parcing(int i);
+    // void parcing(int i);
+    std::vector<std::string> parcing(Clientx Guest);
+    // std::vector<std::string> parcing(int i);
     std::string toupper(std::string &str);
     std::string trim(const std::string &str);
     std::vector<std::string> splitt(const std::string &str, char del);
-    void Authenticate(int fd);
-    void validatePass(std::string &str, int i);
-    void validateNick(std::string &str, int i);
-    void validateUser(std::string &str, int i);
+    void Authenticate(Clientx Guest);
+    // void Authenticate(int fd, int iloop);
+    // void Authenticate(int fd);
+    void validatePass(std::string &str, Clientx Guest);
+    void validateNick(std::string &str, Clientx Guest);
+    void validateUser(std::string &str, Clientx Guest);
     int  nickalreadyexist(std::string nick);
-    void Register(int i);
+    void Register(Clientx user);
     void fdHandler(int i);
-    void clearVec(std::vector<std::string> &vec);
     int getUserfromClientlist(int fd);
+    void resetGuest();
 };
