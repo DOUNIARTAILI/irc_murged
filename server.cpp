@@ -485,6 +485,11 @@ void Server::handleClientDataMsg(int index)
     buf[nbytes] = '\0';
     this->clientsList[index].cmd += buf;
     this->clientsList[index].c_fd = pfds[index].fd;
+    for(size_t x = 0; x < channels.size(); x++)
+    {
+        if (channels[x].user_list.size() == 0)
+            channels.erase(channels.begin() + x);
+    }
     if (nbytes <= 0)
     {
         int sender_fd = pfds[index].fd;
@@ -503,6 +508,7 @@ void Server::handleClientDataMsg(int index)
     }
     else
     {
+
     puts("1");
         // Process received data
         buf[nbytes] = '\0';  // Ensure null-termination

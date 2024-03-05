@@ -130,6 +130,17 @@ void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
     }
 }
 
+
+
+void    broadcast_kick(std::vector<Channel>::iterator it, Clientx &user, std::string &cli, std::string &reason)
+{
+    for (size_t i = 0; i < it->user_list.size(); ++i)
+    {
+        std::string syn = KICK_MSG(user.nickname, user.ip, it->name, cli, reason);
+        write(it->user_list[i]->c_fd, syn.c_str(), syn.size());
+    }
+}
+
 void kick(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 {
     size_t i = 0;
@@ -148,19 +159,11 @@ void kick(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                         std::cout<<cmd.users[i]<<std::endl;
                         if (it->is_user(cmd.users[i]))
                         {
-                    
-                            std::string kickmsg;
+                            broadcast_kick(it, client, cmd.users[i], cmd.comment);
                             // write(client.c_fd, kickmsg.c_str(), kickmsg.size());
                             // kick_broadcast(it, client, cmd.users[0], cmd.comment);
-                            std::cout<<cmd.users.size()<<std::endl;
-                            while (j < it->user_list.size())
-                            {
-                                kickmsg = KICK_MSG(client.nickname, client.ip, it->name,cmd.users[0], cmd.comment);
-                                write(it->user_list[j]->c_fd, kickmsg.c_str(), kickmsg.size());
-                                j++;
-                            }
-                            it->remove_user(cmd.users[i]);
                             it->remove_operator(cmd.users[i]);
+                            it->remove_user(cmd.users[i]);
                         }
                         else
                         {
@@ -227,6 +230,22 @@ void part(std::vector<Channel>&chan, Command &cmd, Clientx &client)
         i++;
     }
 }
+
+
+
+// void clearchannel(std::vector<Channel>&chan, Clientx &client)
+// {
+//     size_t i = 0;
+//     while(i < chan.size())
+//     {
+//         if (chan[i].is_user(client.nickname))
+//         {
+//             if (chan[i].user_list.size() == 0)
+//                 chan.erase(chan.begin() + i);
+//         }
+//         i++;
+//     }
+// }
 
 void privmsg(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 {
