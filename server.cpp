@@ -69,7 +69,7 @@ std::string Server::trim(const std::string &str)
     return str.substr(leftPos, rightPos - leftPos + 1);
 }
 
-std::vector<std::string>  Server::parcing(Clientx user){
+std::vector<std::string>  Server::parcing(Clientx &user){
     // int i = getUserfromClientlist(fd);
     // commandparsed.clear();
     std::vector<std::string> commandparsed;
@@ -430,6 +430,9 @@ void Server::handleNewConnection(void)
         perror("accept");
     } else {
         add_to_pfds(newfdclient);
+        Clientx user;
+        user.c_fd = newfdclient;
+        clientsList.push_back(user);
 //         char ip4[INET_ADDRSTRLEN];  // space to hold the IPv4 string
 // struct sockaddr_in sa;      // pretend this is loaded with something
 
@@ -479,16 +482,19 @@ std::vector<std::string> Server::splitt(const std::string &str, char del)
     return v;
 }
 
-void Server::handleClientDataMsg(int index)
+void Server::handleClientDataMsg(int fd)
 {
     char buf[2048];    // Buffer for client data
-    size_t nbytes = recv(pfds[index].fd, buf, sizeof buf, 0);
+    size_t nbytes = recv(fd, buf, sizeof buf, 0);
     buf[nbytes] = '\0';
     // Clientx user;
-    guest.c_fd = pfds[index].fd;
-    guest.cmd += buf;
-    // this->clientsList[index].cmd += buf;
-    // this->clientsList[index].c_fd = pfds[index].fd;
+    
+    // guest.c_fd = pfds[index].fd;
+    // guest.cmd += buf;
+    int index = getUserfromClientlist(fd);
+    this->clientsList[index].cmd += buf;
+    this->clientsList[index].c_fd = fd;
+    
     for(size_t x = 0; x < channels.size(); x++)
     {
         if (channels[x].user_list.size() == 0)
@@ -496,7 +502,7 @@ void Server::handleClientDataMsg(int index)
     }
     if (nbytes <= 0)
     {
-        int sender_fd = pfds[index].fd;
+        int sender_fd = fd;
 
         // Got error or connection closed by client
         if (nbytes == 0) {
@@ -525,9 +531,9 @@ void Server::handleClientDataMsg(int index)
             //     puts("no");
             //     cmd.getcommand(user.cmd, this->channels, cmd, user, this->clientsList);
             // }
-            if (guest.connected == true){
+            if (this->clientsList[index].connected == true){
                 puts("no");
-                cmd.getcommand(guest.cmd, this->channels, cmd, guest, this->clientsList);
+                cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
             }
             else
             {
@@ -535,7 +541,8 @@ void Server::handleClientDataMsg(int index)
                 // try {
                     puts("yup");
                     std::cout << "fd =>" << pfds[index].fd << std::endl;
-                    this->Authenticate(guest);
+                    std::cout << "i dyal clientsList  " << index << std::endl; 
+                    this->Authenticate(this->clientsList[index]);
                     // this->Authenticate(pfds[index].fd, index);
                 // }
                 // catch (const std::exception &e)
@@ -550,7 +557,7 @@ void Server::handleClientDataMsg(int index)
                 //     fdHandler(index);
                 // }
             }
-            guest.cmd = "";
+            this->clientsList[index].cmd = "";
         // }
     }
 }
@@ -588,7 +595,7 @@ void Server::runServer()
                 }
                 else
                 {
-                    handleClientDataMsg(i);
+                    handleClientDataMsg(pfds[i].fd);
                 }
             }
         }
@@ -726,7 +733,7 @@ void Server::runServer()
 //     commandparsed.clear();
 // }
 
-void Server::validatePass(std::string &str, Clientx user){
+void Server::validatePass(std::string &str, Clientx &user){
     if (user.pass == true){
         std::string rp = ERR_ALREADYREGISTERED(Server::hostname);
         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
@@ -785,7 +792,7 @@ int_fast16_t checkCHANTYPES(std::string &str){
     return 1;
 }
 
-void Server::validateNick(std::string &str, Clientx user){
+void Server::validateNick(std::string &str, Clientx &user){
     std::cout << "str " << str << std::endl; 
     std::vector<std::string> splited = this->splitt(str, ' ');
     std::cout << "splited[0] " << splited[0] << std::endl; 
@@ -812,11 +819,14 @@ void Server::validateNick(std::string &str, Clientx user){
             else{
                 puts("here4");
                 // user.nickname = splited[0];
+                std::cout << "clientsList size " << clientsList.size() << std::endl; 
                 if (!clientsList.empty()) {
-                    // puts("yes dkhl");
-                    // std::cout << "clientsList size " << clientsList.size() << std::endl; 
-                    // std::cout << "i dyal clientsList  " << i << std::endl; 
-                    user.setNickname(splited[0]);
+                    puts("yes dkhl");
+                    std::cout << "clientsList size " << clientsList.size() << std::endl; 
+                    
+                    // user.setNickname(splited[0]);
+                    std::cout << "splited[0]  " << splited[0] << std::endl; 
+                    user.nickname = splited[0];
                 }
                 puts("here5");
             }
@@ -831,7 +841,7 @@ void Server::validateNick(std::string &str, Clientx user){
         }
     }
 }
-void Server::validateUser(std::string &str, Clientx user){
+void Server::validateUser(std::string &str, Clientx &user){
     // user hala 0 * loka | strlen = 4
     std::vector<std::string> splited = this->splitt(str, ' ');
     if (splited.size() == 4){
@@ -867,7 +877,7 @@ void Server::resetGuest()
     this->guest.c_fd = -1;
 }
 
-void Server::Register(Clientx user)
+void Server::Register(Clientx &user)
 {
     if (user.nickname.empty() || user.username.empty() || user.pass == false)
         return;
@@ -879,8 +889,6 @@ void Server::Register(Clientx user)
     std::cout << "after replay" << std::endl;
     std::cout << "nick "<< user.nickname << " user " << user.username << std::endl;
     user.connected = true;
-    clientsList.push_back(user);
-
     // user.connected = true;
 }
 
@@ -915,8 +923,9 @@ int Server::getUserfromClientlist(int fd){
     }
     return -1;
 }
-void Server::Authenticate(Clientx user)
+void Server::Authenticate(Clientx &user)
 {
+    puts("vvv");
     // int i = getUserfromClientlist(fd);
     std::vector<std::string> commandparsed = parcing(user);
     std::string firstarg = toupper(commandparsed[0]);
@@ -935,6 +944,7 @@ void Server::Authenticate(Clientx user)
     switch(idx)
     {
         case 0:
+            std::cout << "password = |" << commandparsed[1] << "|" << std::endl;
             if (!commandparsed[1].empty()){
                 validatePass(commandparsed[1], user);
                 std::cout << "status dyal pass mora madkhal pass correcte " << user.pass << std::endl;
