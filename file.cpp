@@ -422,6 +422,15 @@ void printallchannels(std::vector<Channel> &chan)
     }
 }
 
+std::string tostr(int n)
+{
+    std::string str;
+    std::stringstream ss;
+    ss << n;
+    ss >> str;
+    return str;
+}
+
 void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::vector<Clientx>&clients)
 {
     (void)clients;
@@ -432,7 +441,7 @@ void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::vect
         {
             if (cmd.channel[i].first[0] != '#')
                 cmd.channel[i].first = '#' + cmd.channel[i].first;
-            std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), cmd.channel[i].first);
+            std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
             if (it != chan.end())
             {
                 std::cout<<cmd.topic<<std::endl;
@@ -440,11 +449,15 @@ void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::vect
                 {
                     std::string topicmsg = RPL_NOTOPIC(client.nickname, cmd.channel[0].first);
                     write(client.c_fd, topicmsg.c_str(), topicmsg.size());
+                    return ;
                 }
                 if (cmd.command_arg.size() == 1 && !chan[i].topic.empty())
                 {
                     std::string topicmsg = RPL_TOPIC(client.nickname, cmd.channel[0].first, it->topic);
                     write(client.c_fd, topicmsg.c_str(), topicmsg.size());
+                    std::string topictime = RPL_TOPICWHOTIME(client.nickname, it->name, it->topicsetter,tostr(it->topic_time));
+                    write(client.c_fd, topictime.c_str(), topictime.size());
+                    return ;
                 }
                 if (cmd.command_arg.size() > 1)
                 {
@@ -455,24 +468,30 @@ void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::vect
                             std::string topicmsg = RPL_TOPIC(client.nickname, cmd.channel[i].first, cmd.topic);
                             write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                             it->topic = cmd.topic;
+                            it->topicsetter = client.nickname;
+                            it->topic_time = time(NULL);
+                            return ;
                         }
-                    else if (!it->is_operator(client.nickname) && it->is_user(client.nickname))
-                    {
-                        std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
-                        write(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size());
+                        else if (!it->is_operator(client.nickname) && it->is_user(client.nickname))
+                        {
+                            std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
+                            write(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size());
+                            return ;
+                        }
                     }
-                }
-                if (it->is_user(client.nickname))
-                {
-                    std::string topicmsg = RPL_TOPIC(client.nickname, cmd.channel[i].first, cmd.topic);
-                    write(client.c_fd, topicmsg.c_str(), topicmsg.size());
-                    it->topic = cmd.topic;
-                }
-                else
-                {
-                    std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[i].first);
-                    write(client.c_fd, notonchannel.c_str(), notonchannel.size());
-                }
+                    if (it->is_user(client.nickname))
+                    {
+                        std::string topicmsg = RPL_TOPIC(client.nickname, cmd.channel[i].first, cmd.topic);
+                        write(client.c_fd, topicmsg.c_str(), topicmsg.size());
+                        it->topic = cmd.topic;
+                        it->topic_time = time(NULL);
+                        return ;
+                    }
+                    else
+                    {
+                        std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[i].first);
+                        write(client.c_fd, notonchannel.c_str(), notonchannel.size());
+                    }
                 }
             }
             else

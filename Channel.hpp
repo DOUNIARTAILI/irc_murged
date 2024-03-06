@@ -5,19 +5,22 @@
 #include"server.hpp"
 #include <map>
 #include <utility>
-#define timeout 77
+// #define timeout 77
 
 class Clientx;
 
 class Channel
 {
     public:
+    time_t topic_time;
+    time_t creation_time;
     std::string name;
     std::string pwd;
     std::string topic;
     std::string mode;
     std::string old_mode;
     std::string mode_param;
+    std::string topicsetter;
     bool k_flag;
     size_t  max_users;
     Channel();

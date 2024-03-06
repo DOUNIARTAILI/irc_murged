@@ -1,7 +1,7 @@
 #include"server.hpp"
 #include"Commands.hpp"
 #include"Channel.hpp"
-
+#include <fcntl.h>
 class Client;
 class Channel;
 
@@ -363,6 +363,12 @@ int Server::get_listener_socket()
         // Lose the pesky "address already in use" error message
         setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
+        // we need to set the socket to non-blocking
+        if (fcntl(listener, F_SETFL, O_NONBLOCK) == -1) {
+            perror("fcntl");
+            exit(1);
+        }
+
         if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
             close(listener);
             continue;
@@ -429,6 +435,10 @@ void Server::handleNewConnection(void)
     if (newfdclient == -1) {
         perror("accept");
     } else {
+        if (fcntl(newfdclient, F_SETFL, O_NONBLOCK) == -1) {
+            perror("fcntl");
+            exit(1);
+        }
         add_to_pfds(newfdclient);
         // Clientx user;
         // user.c_fd = newfdclient;
@@ -458,11 +468,11 @@ void Server::handleNewConnection(void)
                          get_in_addr((struct sockaddr *)&remoteaddr),
                          remoteIP, INET_ADDRSTRLEN));
         // send a welcome message to the client
-        std::string welcomeMsg = "Welcome to the server!\n";
-        if (send(newfdclient, welcomeMsg.c_str(), welcomeMsg.length(), 0) == -1)
-        {
-            perror("send");
-        }
+        // std::string welcomeMsg = "Welcome to the server!\n";
+        // if (send(newfdclient, welcomeMsg.c_str(), welcomeMsg.length(), 0) == -1)
+        // {
+        //     perror("send");
+        // }
     }
 }
 
@@ -569,7 +579,7 @@ void Server::runServer()
     add_to_pfds(this->listenerSock);// Report ready to read on incoming connection
     // Main loop
     for(;;) {
-        int poll_count = poll(pfds.data(), pfds.size(), -1);
+        int poll_count = poll(pfds.data(), pfds.size(), 0); // kant -1
 
         if (poll_count == -1) {
             perror("poll");

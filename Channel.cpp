@@ -16,6 +16,7 @@ Channel::Channel(const std::string &name)
     this->name = name;
     this->mode = "+t";
     this->k_flag = false;
+    this->creation_time = time(NULL);
 }
 
 Channel& Channel::operator=(const Channel& other)

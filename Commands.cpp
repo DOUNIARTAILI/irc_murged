@@ -104,7 +104,7 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         toupper(command);
     while (iss >> command_args)
     {
-        command_arg.push_back(command_args + 'd');
+        command_arg.push_back(command_args); // hh
         size_arg++;
     }
     if (!command.empty())
@@ -204,7 +204,15 @@ void Command::topiccommand()
     if (command_arg.size() > 0)
         channel.push_back(std::make_pair(command_arg[0], ""));
     if (command_arg.size() > 1)
-        topic = command_arg[1];
+    {
+        if (command_arg[1][0] == ':')
+        {
+            topic = mainstring.substr(mainstring.find(':') + 1);
+            topic = topic.erase(topic.size() - 1);
+        }
+        else
+            topic = command_arg[1];
+    }
 }
 
 void Command::invitecommand()
