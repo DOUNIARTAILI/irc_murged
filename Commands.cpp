@@ -148,11 +148,11 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
             invitecommand();
             invite(chan,cmd,client,clients);
         }
-        // else if (command == "QUIT")
-        // {
-        //     quitcommand();
-        //     quit(chan, cmd, client);
-        // }
+        else if (command == "QUIT")
+        {
+            quitcommand();
+            quit(chan, cmd, client);
+        }
         else if (command == "PART")
         {
             partcommand();

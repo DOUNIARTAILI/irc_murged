@@ -524,7 +524,7 @@ void Server::handleClientDataMsg(int fd)
 
         close(sender_fd); // Bye!
 
-        del_from_pfds(index);
+        del_from_pfds(sender_fd);
     }
     else
     {
@@ -562,6 +562,7 @@ void Server::handleClientDataMsg(int fd)
                 //     fdHandler(index);
                 // }
             }
+            std::cout<<"buffer ==> "<< this->clientsList[index].cmd <<std::endl;
             this->clientsList[index].cmd = "";
         }
     }
@@ -887,7 +888,22 @@ void Server::Register(Clientx &user)
     if (user.nickname.empty() || user.username.empty() || user.pass == false)
         return;
     std::string rp = RPL_WELCOME(user.nickname);
+    std::string rp2 = RPL_YOURHOST(user.nickname);
+    std::string rp3 = RPL_CREATED(user.nickname);
+    std::string rp4 = RPL_MYINFO(user.client);
     if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+    {
+        perror("send");
+    }
+    if (send(user.c_fd, rp2.c_str(), rp2.length(), 0) == -1)
+    {
+        perror("send");
+    }
+    if (send(user.c_fd, rp3.c_str(), rp3.length(), 0) == -1)
+    {
+        perror("send");
+    }
+    if (send(user.c_fd, rp4.c_str(), rp4.length(), 0) == -1)
     {
         perror("send");
     }

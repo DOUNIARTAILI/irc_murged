@@ -27,6 +27,16 @@ void broadcast(std::vector<Clientx *> &clients, std::string msg)
     }
 }
 
+void broadcast2(std::vector<Clientx > &clients, std::string msg)
+{
+    size_t i = 0;
+    while (i < clients.size())
+    {
+        write(clients[i].c_fd, msg.c_str(), msg.size());
+        i++;
+    }
+}
+
 // void broadcast(std::vector<Clientx *> &clients, std::string msg)
 // {
 //     size_t i = 0;
@@ -312,15 +322,30 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vecto
 
 }
 
-void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, Server server)
+// void Server::fdHandler(int i){
+//     if (i >= 0 && i < clientsList.size()) {
+//         int client_fd = clientsList[i].c_fd;
+//         close(client_fd);
+        
+//         // Erase the client from clientsList
+//         clientsList.erase(clientsList.begin() + i);
+
+//         // Check if clientsList is not empty before calling del_from_pfds
+//         if (!clientsList.empty()) {
+//             del_from_pfds(client_fd);
+//         }
+//     }
+// }
+
+void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 {
     (void)chan;
     std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
     write(client.c_fd, quitmsg.c_str(), quitmsg.size());
     close(client.c_fd);
     // server.clients.erase(std::find(server.clients.begin(), server.clients.end(), client));
-
 }
+
 
 void nick(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients)
 {
@@ -329,16 +354,23 @@ void nick(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<
     if (cmd.command_arg.size() > 0)
     {
         std::vector<Clientx>::iterator it = std::find(clients.begin(), clients.end(), Clientx(cmd.nickname));
+        // if (it != clients.end() && it->c_fd == client.c_fd)
+        // {
+        //     puts("ignore change nick");
+        //     return ;
+        // }
         if (it == clients.end())
         {
             std::string nickmsg = NICK_MSG(client.nickname, client.username, client.ip, cmd.nickname);
-            write(client.c_fd, nickmsg.c_str(), nickmsg.size());
+            broadcast2(clients, nickmsg);
+            // write(client.c_fd, nickmsg.c_str(), nickmsg.size());
             client.nickname = cmd.nickname;
         }
         else
         {
             std::string nickinuse = ERR_NICKINUSE(client.nickname, cmd.nickname);
-            write(client.c_fd, nickinuse.c_str(), nickinuse.size());
+            // write(client.c_fd, nickinuse.c_str(), nickinuse.size());
+            broadcast2(clients,nickinuse);
         }
     }
     else
