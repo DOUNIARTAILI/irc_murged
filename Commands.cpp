@@ -151,7 +151,7 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         else if (command == "QUIT")
         {
             quitcommand();
-            quit(chan, cmd, client);
+            quit(chan, cmd, client, clients);
         }
         else if (command == "PART")
         {

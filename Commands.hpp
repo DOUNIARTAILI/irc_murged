@@ -94,13 +94,13 @@ class Command
     void nickcommand();
     void quitcommand();
     void partcommand();
-    void modecommand(); 
+    void modecommand();
 };
 
 void join(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void kick(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void part(std::vector<Channel>&chan, Command &cmd, Clientx &client);
-void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client);
+void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients);
 void nick(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients);
 void prv(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients);
 void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::vector<Clientx>&clients);

@@ -183,9 +183,9 @@ private:
     // Data *data;
     static std::string PASS;
     std::vector<Clientx>   clientsList;
+    static std::vector<pollfd> pfds;
     std::string port;
     static std::string hostname;
-    static std::vector<pollfd> pfds;
     std::vector<std::string>    cmds;        
     std::vector<Channel>        channels;
     Clientx guest;

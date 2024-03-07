@@ -337,15 +337,53 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vecto
 //     }
 // }
 
-void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client)
+// Function to quit a client from a specific channel
+void quit_channel(Channel& channel, int fd)
 {
-    (void)chan;
-    std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
-    write(client.c_fd, quitmsg.c_str(), quitmsg.size());
-    close(client.c_fd);
-    // server.clients.erase(std::find(server.clients.begin(), server.clients.end(), client));
+    std::vector<Clientx*>::iterator itu = std::find(channel.user_list.begin(), channel.user_list.end(), fd);
+    std::vector<Clientx*>::iterator ito = std::find(channel.op_list.begin(), channel.op_list.end(), fd);
+    std::vector<Clientx*>::iterator iti = std::find(channel.inv_list.begin(), channel.inv_list.end(), fd);
+
+    if (itu != channel.user_list.end()) {
+        channel.user_list.erase(itu);
+    }
+    if (ito != channel.op_list.end()) {
+        channel.op_list.erase(ito);
+    }
+    if (iti != channel.inv_list.end()) {
+        channel.inv_list.erase(iti);
+    }
 }
 
+void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients, Server *serv);
+{
+    // removing client from channels
+    size_t i = 0;
+    while (i < chan.size()){
+        quit_channel(chan[i], client.c_fd); 
+        i++;
+    }
+    // removing client from clientList
+    std::vector<Clientx>::iterator it = std::find(clients.begin(), clients.end(), client.c_fd);
+    if (it != clients.end()) {
+        clients.erase(it);
+    }
+    close(client.c_fd);
+    if (!clients.empty()) {
+        del_from_pfds(client.c_fd);
+    }
+    std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
+    broadcast2(clients, quitmsg);
+}
+
+// void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client)
+// {
+//     (void)chan;
+//     std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
+//     write(client.c_fd, quitmsg.c_str(), quitmsg.size());
+//     close(client.c_fd);
+//     // server.clients.erase(std::find(server.clients.begin(), server.clients.end(), client));
+// }
 
 void nick(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients)
 {
