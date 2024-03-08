@@ -5,6 +5,7 @@
 #include<sstream>
 #include<map>
 #include <arpa/inet.h>
+#include<curl/curl.h>
 
 std::string my_hostname();
 #define Hostname ":" + my_hostname()
@@ -34,7 +35,7 @@ std::string my_hostname();
 #define ERR_NOSUCHCHANNEL(client, channel)  Hostname + " 403 " + (client) + " " + (channel) + " :No such channel\r\n"
 #define ERR_NOTONCHANNEL(client, channel)  Hostname + " 442 " + (client) + " " + (channel) + " :You're not on that channel\r\n"
 #define ERR_PASSWDMISTACH(client) Hostname + " 464 " + (client) + " :Password incorrect\r\n"
-#define ERR_NOPASSGIVEN(client) Hostname  + " * :No password 1 given\r\n"
+#define ERR_NOPASSGIVEN(client) Hostname  + " * :No password  given\r\n"
 #define ERR_CHANOPRIVSNEEDED(client, channel) Hostname +  " 482 " + (client) + " " + (channel) + " :You're not channel operator\r\n"
 #define ERR_USERONCHANNEL(client, nick, channel) Hostname + " 443 " + (client) + " " + (nick) + " " + (channel) + " :is already on channel\r\n"
 #define ERR_BADCHANMASK(channel)  Hostname + " 476 " + (channel) + " :Bad Channel Mask\r\n"
@@ -82,6 +83,7 @@ class Command
     std::vector<std::pair<char , char> > mode;
     std::string mode_char;
     std::vector<std::string> mode_args;
+    std::string bot_arg;
 
     Command();
     ~Command();
@@ -95,6 +97,7 @@ class Command
     void quitcommand();
     void partcommand();
     void modecommand();
+    void botCommand();
 };
 
 void join(std::vector<Channel>&chan, Command &cmd, Clientx &client);
@@ -108,3 +111,4 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vecto
 // void broadcast(std::vector<Clientx> &clients, std::string msg);
 void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void broadcast(std::vector<Clientx *> &clients, std::string msg);
+void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client);

@@ -79,9 +79,9 @@ void Command::kickcommand()
 
 size_t iscommand(std::string &str)
 {
-    std::string command[9] = {"JOIN", "KICK", "TOPIC", "PRIVMSG", "INVITE", "QUIT", "PART", "NICK", "MODE"};
+    std::string command[10] = {"BOT","JOIN", "KICK", "TOPIC", "PRIVMSG", "INVITE", "QUIT", "PART", "NICK", "MODE"};
     size_t i = 0;
-    while(i < 8)
+    while(i < 9)
     {
         if (str == command[i])
             return 1;
@@ -128,6 +128,12 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
             joincommand();
             join(chan, cmd, client);
         }
+        else if (command == "BOT")
+        {
+            std::cout<<"bot xxxxxtime"<<std::endl;
+            botCommand();
+            bot(chan, cmd, client);
+        }
         else if (command == "KICK")
         {
             kickcommand();
@@ -148,11 +154,11 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
             invitecommand();
             invite(chan,cmd,client,clients);
         }
-        else if (command == "QUIT")
-        {
-            quitcommand();
-            quit(chan, cmd, client, clients);
-        }
+        // else if (command == "QUIT")
+        // {
+        //     quitcommand();
+        //     quit(chan, cmd, client, clients);
+        // }
         else if (command == "PART")
         {
             partcommand();
@@ -301,4 +307,19 @@ void Command::modecommand()
             i++;
         }
     }
+}
+
+
+void Command::botCommand()
+{
+    // puts("bot 2");
+
+    // std::cout<<"Command_arg[1] ==>"<<command_arg[0]<<std::endl;
+    // std::cout<<"command_arg.size() "<<command_arg.size()<<std::endl;
+    if (command_arg.size() == 0 || command_arg.size() > 1)
+    {
+        bot_arg = "";
+        return ;
+    }
+    bot_arg = command_arg[0];
 }
