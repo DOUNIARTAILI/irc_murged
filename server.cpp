@@ -492,6 +492,10 @@ std::vector<std::string> Server::splitt(const std::string &str, char del)
     return v;
 }
 
+
+
+
+
 void Server::handleClientDataMsg(int fd)
 {
     char buf[2048];    // Buffer for client data
@@ -625,7 +629,7 @@ void Server::runServer()
 //             else {
 //                 std::string error;
 //                 error = ERR_PASSWDMISTACH(clientsList[i].ip);
-//                 if (send(clientsList[i].c_fd, error.c_str(), error.length(), 0) == -1)
+//                 if ((clientsList[i].c_fd, error.c_str(), error.length(), 0) == -1)
 //                 {
 //                     perror("send");
 //                 }
