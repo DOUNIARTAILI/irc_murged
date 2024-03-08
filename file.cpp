@@ -87,22 +87,25 @@ void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
             std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
             if (it != chan.end())
             {
-                if (it->user_list.size() > it->max_users && it->mode.find('l') != std::string::npos)
+                if (it->user_list.size() >= it->max_users && it->mode.find('l') != std::string::npos)
                 {
                     std::string maxusers = ERR_CHANNELISFULL(client.nickname, cmd.channel[i].first);
                     write(client.c_fd, maxusers.c_str(), maxusers.size());
+                    // broadcast(it->user_list, maxusers);
                     return ;
                 }
                 if (it->mode.find('i') != std::string::npos && it->is_invite(client.nickname) == false)
                 {
                     std::string inviteonly = ERR_INVITEONLYCHAN(client.nickname, cmd.channel[i].first);
                     write(client.c_fd, inviteonly.c_str(), inviteonly.size());
+                    // broadcast(it->user_list, inviteonly);
                     return ;
                 }
                 if (it->mode.find('k') != std::string::npos && it->pwd != cmd.channel[i].second)
                 {
                     std::string badpassword = ERR_BADCHANNELKEY(client.nickname, cmd.channel[i].first);
                     write(client.c_fd, badpassword.c_str(), badpassword.size());
+                    // broadcast(it->user_list, badpassword);
                     return ;
                 }
                 if (!it->is_user(client.nickname))
@@ -286,7 +289,7 @@ void privmsg(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients)
 {
     // size_t i = 0;
-    if (cmd.command_arg.size() > 0)
+    if (cmd.command_arg.size() > 1)
     {
         if (cmd.channel[0].first[0] != '#')
             cmd.channel[0].first = '#' + cmd.channel[0].first;
@@ -315,6 +318,7 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vecto
             }
         }
     }
+    else
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "INVITE");
         write(client.c_fd, moreparams.c_str(), moreparams.size());
@@ -416,8 +420,8 @@ void nick(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<
         else
         {
             std::string nickinuse = ERR_NICKINUSE(client.nickname, cmd.nickname);
-            // write(client.c_fd, nickinuse.c_str(), nickinuse.size());
-            broadcast2(clients,nickinuse);
+            write(client.c_fd, nickinuse.c_str(), nickinuse.size());
+            // broadcast2(clients,nickinuse);
         }
     }
     else
@@ -670,6 +674,7 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
             {
                 std::string mode = RPL_CHANNELMODEIS(client.nickname, cmd.channel[0].first, it->mode);
                 write(client.c_fd, mode.c_str(), mode.size());
+                return ;
             }
             else
             {
@@ -888,11 +893,19 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                 std::cout<<"old ==>"<<it->old_mode<<std::endl;
                 std::cout<<"update ===> "<<print_update(it->old_mode, it->mode) <<std::endl;
                 std::string newmode = print_update(it->old_mode, it->mode ) + " " + it->mode_param;
-                if (!newmode.find("oitlk"))
+                // if (!newmode.find("oitlk"))
+                // {
+                //     std::string mode = RPL_CHANNELMODEIS(client.nickname, cmd.channel[0].first, newmode);
+                //     broadcast(it->user_list, mode);
+                // }
+                if (newmode.find("o") != std::string::npos || newmode.find("i") != std::string::npos || newmode.find("t") != std::string::npos || newmode.find("l") != std::string::npos || newmode.find("k") != std::string::npos)
                 {
-                    std::string mode = RPL_CHANNELMODEIS(client.nickname, cmd.channel[0].first, newmode);
-                    broadcast(it->user_list, mode);
+                    std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, cmd.channel[0].first, newmode, it->name);
+                    broadcast(it->user_list, modeup);
+                    return ;
                 }
+                else
+                    return ;
             }
             else
             {

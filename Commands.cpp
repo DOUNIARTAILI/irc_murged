@@ -223,11 +223,12 @@ void Command::topiccommand()
 
 void Command::invitecommand()
 {
+    std::cout<<"invite cmdsize "<<command_arg.size()<<std::endl;
     if (command_arg.size() > 2)
     {
         std::cerr<<"too many arguments"<<std::endl;
         return ;
-    }
+    }   
     if (command_arg.size() > 0)
             nickname = command_arg[0];
     if (command_arg.size() > 1)
