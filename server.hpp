@@ -169,6 +169,7 @@ public:
 #include <netdb.h>
 #include <poll.h>
 #include <vector>
+#include <list>
 
 
 
@@ -182,7 +183,8 @@ class Server{
 private:
     // Data *data;
     static std::string PASS;
-    std::vector<Clientx>   clientsList;
+    // std::vector<Clientx>   clientsList;
+    std::list<Clientx> clients_list;
     static std::vector<pollfd> pfds;
     std::string port;
     static std::string hostname;
@@ -227,6 +229,6 @@ public:
     int  nickalreadyexist(std::string nick);
     void Register(Clientx &guest);
     void fdHandler(int i);
-    int getUserfromClientlist(int fd);
+    std::list<Clientx>::iterator getUserfromClientlist(int fd);
     void resetGuest();
 };

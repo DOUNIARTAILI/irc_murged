@@ -23,29 +23,30 @@ std::string normalize_string(std::string f)
 void Server::addUser(int fd, std::string ip)
 {
     Clientx user(fd, ip);
-    clientsList.push_back(user);
+    this->clients_list.push_back(user);
+    // clientsList.push_back(user);
 }
 
-void Server::parseCmd(int i)
-{
-   int index;
-   std::string l;
+// void Server::parseCmd(int i)
+// {
+//    int index;
+//    std::string l;
    
-   while(1)
-   {
-        index = clientsList[i].cmd.find_first_of(" ");
-        if (index == -1)
-        {
-            cmds.push_back(clientsList[i].cmd);
-            break;
-        }
-        l = clientsList[i].cmd.substr(0, index);
-        if (l != "")
-            cmds.push_back(l);
-        clientsList[i].cmd = clientsList[i].cmd.substr(index + 1, clientsList[i].cmd.length());
-   }
-//    user clientx => cmd string
-}
+//    while(1)
+//    {
+        // index = clientsList[i].cmd.find_first_of(" ");
+//         if (index == -1)
+//         {
+//             cmds.push_back(clientsList[i].cmd);
+//             break;
+//         }
+//         l = clientsList[i].cmd.substr(0, index);
+//         if (l != "")
+//             cmds.push_back(l);
+//         clientsList[i].cmd = clientsList[i].cmd.substr(index + 1, clientsList[i].cmd.length());
+//    }
+// //    user clientx => cmd string
+// }
 
 std::string Server::toupper(std::string &str)
 {
@@ -136,34 +137,31 @@ std::vector<std::string>  Server::parcing(Clientx &user){
 //     std::cout << "end." << std::endl;
 // }
 
-std::string Server::check_num(char c, int index)
-{
-    char str[] = ":#0123456789";
-    int i;
-    std::string error = ERR_ERRONEUSNICKNAME(clientsList[index].ip, "nick");
+// std::string Server::check_num(char c, int index)
+// {
+//     char str[] = ":#0123456789";
+//     int i;
+//     std::string error = ERR_ERRONEUSNICKNAME(clientsList[index].ip, "nick");
 
-    i = 0;
-    while (i < 12)
-    {
-        if (str[i] == c)
-            return (error);
-        i++;            
-    }
-    return "";
-}
+//     i = 0;
+//     while (i < 12)
+//     {
+//         if (str[i] == c)
+//             return (error);
+//         i++;            
+//     }
+//     return "";
+// }
 
 
 int  Server::nickalreadyexist(std::string nick)
 {
-    size_t i;
-
-    i = 0;
-    puts("here 1");
-    while (i < clientsList.size())
+    std::list<Clientx>::iterator i = this->clients_list.begin();
+    while (i != this->clients_list.end())
     {
-        if (clientsList[i].nickname == nick)
+        if (i->nickname == nick)
             return 0;
-        i++;
+        ++i;
     }
     return 1;
 }
@@ -494,8 +492,6 @@ std::vector<std::string> Server::splitt(const std::string &str, char del)
 
 
 
-
-
 void Server::handleClientDataMsg(int fd)
 {
     char buf[2048];    // Buffer for client data
@@ -505,9 +501,14 @@ void Server::handleClientDataMsg(int fd)
     
     // guest.c_fd = pfds[index].fd;
     // guest.cmd += buf;
-    int index = getUserfromClientlist(fd);
-    this->clientsList[index].cmd += buf;
-    this->clientsList[index].c_fd = fd;
+    std::list<Clientx>::iterator it = getUserfromClientlist(fd);
+    if (it != this->clients_list.end())
+    {
+        it->cmd += buf;
+        it->c_fd = fd;
+    }
+    // this->clientsList[index].cmd += buf;
+    // this->clientsList[index].c_fd = fd;
     
     for(size_t x = 0; x < channels.size(); x++)
     {
@@ -538,20 +539,20 @@ void Server::handleClientDataMsg(int fd)
         // buf[nbytes] = '\0';  // Ensure null-termination
         Command cmd;
         // cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
-        if (this->clientsList[index].cmd.find("\n") != std::string::npos)
+        if (it->cmd.find("\n") != std::string::npos)
         {
-            if (this->clientsList[index].connected == true){
+            if (it->connected == true){
                 puts("no");
-                cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
+                cmd.getcommand(it->cmd, this->channels, cmd, *it, this->clients_list); //should change it to list
             }
             else
             {
                 // this->auth(index);
                 // try {
                     puts("yup");
-                    std::cout << "fd =>" << pfds[index].fd << std::endl;
+                    // std::cout << "fd =>" << pfds[index].fd << std::endl;
                     std::cout << "i dyal clientsList  " << index << std::endl; 
-                    this->Authenticate(this->clientsList[index]);
+                    this->Authenticate(*it);
                     // this->Authenticate(pfds[index].fd, index);
                 // }
                 // catch (const std::exception &e)
@@ -566,8 +567,8 @@ void Server::handleClientDataMsg(int fd)
                 //     fdHandler(index);
                 // }
             }
-            std::cout<<"buffer ==> "<< this->clientsList[index].cmd <<std::endl;
-            this->clientsList[index].cmd = "";
+            std::cout<<"buffer ==> "<< it->cmd <<std::endl;
+            it->cmd = "";
         }
     }
 }
@@ -829,10 +830,10 @@ void Server::validateNick(std::string &str, Clientx &user){
             else{
                 puts("here4");
                 // user.nickname = splited[0];
-                std::cout << "clientsList size " << clientsList.size() << std::endl; 
-                if (!clientsList.empty()) {
+                // std::cout << "clientsList size " << clientsList.size() << std::endl; 
+                if (!clients_list.empty()) {
                     puts("yes dkhl");
-                    std::cout << "clientsList size " << clientsList.size() << std::endl; 
+                    // std::cout << "clientsList size " << clientsList.size() << std::endl; 
                     
                     // user.setNickname(splited[0]);
                     std::cout << "splited[0]  " << splited[0] << std::endl; 
@@ -924,30 +925,33 @@ void Server::Register(Clientx &user)
 //     del_from_pfds(client_fd);
 // }
 
-void Server::fdHandler(int i){
-    if (i >= 0 && i < clientsList.size()) {
-        int client_fd = clientsList[i].c_fd;
-        close(client_fd);
-        
-        // Erase the client from clientsList
-        clientsList.erase(clientsList.begin() + i);
+    // void Server::fdHandler(int i){
+    //     if (i >= 0 && i < clientsList.size()) {
+    //         int client_fd = clientsList[i].c_fd;
+    //         close(client_fd);
+            
+    //         // Erase the client from clientsList
+    //         clientsList.erase(clientsList.begin() + i);
 
-        // Check if clientsList is not empty before calling del_from_pfds
-        if (!clientsList.empty()) {
-            del_from_pfds(client_fd);
-        }
-    }
+    //         // Check if clientsList is not empty before calling del_from_pfds
+    //         if (!clientsList.empty()) {
+    //             del_from_pfds(client_fd);
+    //         }
+    //     }
+// }
+
+std::list<Clientx>::iterator Server::getUserfromClientlist(int fd){
+   
+   std::list<Clientx>::iterator it = this->clients_list.begin();
+   while (it != this->clients_list.end())
+   {
+        if (it->c_fd == fd)
+            return it;
+        ++it;
+   }
+   return this->clients_list.end();
 }
 
-int Server::getUserfromClientlist(int fd){
-    size_t i = 0;
-    while (i < this->clientsList.size()){
-        if (this->clientsList[i].c_fd == fd)
-            return i;
-        i++;
-    }
-    return -1;
-}
 void Server::Authenticate(Clientx &user)
 {
     puts("vvv");

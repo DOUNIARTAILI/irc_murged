@@ -90,7 +90,7 @@ size_t iscommand(std::string &str)
     return 0;
 }
 
-void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients)
+void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients)
 {
     // command JOIN | args #ch | cmd 
     mainstring = str;
@@ -174,8 +174,8 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
             modecommand();
             modef(chan, cmd, client);
         }
-        else if (command == "LISTNICK")
-            printallnicknames(clients);
+        // else if (command == "LISTNICK")
+        //     printallnicknames(clients);
         else if (command == "LISTCHANNELS")
             printallchannels(chan);
         else
