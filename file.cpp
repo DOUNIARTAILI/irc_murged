@@ -1029,22 +1029,152 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
         {
             perror("send");
         }
-   
-        // data = data.erase(data.length() - 1, data.length());
-        // std::istringstream ss(data);
-        // std::string token;
-        // int i = 0;
-        // while (std::getline(ss, token, ':'))
-        //     i++;
-        // token = token.erase(0, 1);
-        // token = token.erase(token.length() - 1, token.length());
-        // token += "\n";
-        //  if (send(client.c_fd, token.c_str(), token.length(), 0) == -1)
-        // {
-        //     perror("send");
-        // }
     }
+    if (cmd.bot_arg == "fact")
+    {
+        CURL *curl;
+        std::string data;
+        curl = curl_easy_init();
+        if (curl)
+        {
+            // URL for fetching a random fact
+            curl_easy_setopt(curl, CURLOPT_URL, "https://uselessfacts.jsph.pl/random");
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+            CURLcode res = curl_easy_perform(curl);
+            if (res != CURLE_OK)
+            {
+                // Handle error
+                std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+            }
+            curl_easy_cleanup(curl);
+        }
+        std::string start_tag = "<blockquote>";
+        std::string end_tag = "</blockquote>";
+
+        // Find the starting position of the quote
+        size_t start_pos = data.find(start_tag);
+        if (start_pos == std::string::npos) {
+            std::cerr << "Error: Could not find starting quote tag." << std::endl;
+            return ;
+        }
+
+        // Find the ending position of the quote
+        size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
+        if (end_pos == std::string::npos) {
+            std::cerr << "Error: Could not find ending quote tag." << std::endl;
+            return ;
+        }
+
+        // Extract the quote text
+        std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
+
+        // Remove any leading/trailing whitespace
+        quote.erase(0, quote.find_first_not_of(" \t"));
+        quote.erase(quote.find_last_not_of(" \t") + 1);
+
+        quote += '\n';
+        if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
+        {
+            perror("send");
+        }
+    }
+    if (cmd.bot_arg == "dad_joke")
+    {
+        CURL *curl;
+        std::string data;
+        curl = curl_easy_init();
+        if (curl)
+        {
+            // Use the I Can Haz Dad Joke API endpoint for a random joke
+            curl_easy_setopt(curl, CURLOPT_URL, "https://icanhazdadjoke.com/");
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+            // Set the header to accept JSON response
+            struct curl_slist *headers = NULL;
+            headers = curl_slist_append(headers, "Accept: application/json");
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+            CURLcode res = curl_easy_perform(curl);
+            if (res != CURLE_OK)
+            {
+                // Handle error
+            }
+            curl_slist_free_all(headers); // Don't forget to free the headers!
+            curl_easy_cleanup(curl);
+        }
+        std::cout << "joke " << data << std::endl;
+        // joke {"id":"0ozAXv4Mmjb","joke":"Why did the tomato blush? Because it saw the salad dressing.","status":200}
+
+        // joke {"id":"NZDlb299Uf","joke":"Where do sheep go to get their hair cut? The baa-baa shop.","status":200}
+        // Assuming the JSON response is well-formed and contains "joke" field
+        // size_t spos = data.find("\"joke\":");
+        // size_t epos = data.find("\"id\":");
+        // if (spos != std::string::npos && epos != std::string::npos)
+        // {
+        //     // Extract the joke text
+        //     data = data.substr(spos + 7, epos - spos - 7);
+        //     // Trim leading and trailing whitespace and quotes
+        //     data.erase(0, data.find_first_not_of(' '));
+        //     data.erase(data.find_last_not_of(' ') + 1);
+        //     data = data.substr(1, data.size() - 2); // Remove leading and trailing quotes
+        std::string start_tag = "joke\":";
+        std::string end_tag = ",\"status\":200";
+
+        // Find the starting position of the quote
+        size_t start_pos = data.find(start_tag);
+        if (start_pos == std::string::npos) {
+            std::cerr << "Error: Could not find starting quote tag." << std::endl;
+            return ;
+        }
+
+        // Find the ending position of the quote
+        size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
+        if (end_pos == std::string::npos) {
+            std::cerr << "Error: Could not find ending quote tag." << std::endl;
+            return ;
+        }
+
+        // Extract the quote text
+        std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
+
+        // Remove any leading/trailing whitespace
+        quote.erase(0, quote.find_first_not_of(" \t"));
+        quote.erase(quote.find_last_not_of(" \t") + 1);
+
+        quote += '\n';
+        if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
+        {
+            perror("send");
+        }
+    }
+    // if (cmd.bot_arg == "joke")
+    // {
+    //     CURL *curl;
+    //     std::string data;
+    //     curl = curl_easy_init();
+    //     if (curl)
+    //     {
+    //         curl_easy_setopt(curl, CURLOPT_URL, "https://icanhazdadjoke.com/");
+    //         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    //         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+    //         CURLcode res = curl_easy_perform(curl);
+    //         if (res != CURLE_OK)
+    //         {
+    //             // Handle error
+    //         }
+    //         curl_easy_cleanup(curl);
+    //     }
+    //     // size_t spos = findNthOccurrence(data, '"', 7);
+    //     // size_t epos = findNthOccurrence(data, '"', 8);
+    //     // data = data.substr(spos + 1, (epos - spos) - 1);
+    //     data += '\n';
+    //     if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
+    //     {
+    //         perror("send");
+    //     }
     // }
+    
+   
     // if (args == "help" || args == "help -a")
     // {
     //     std::cout << "Available commands:\n";
