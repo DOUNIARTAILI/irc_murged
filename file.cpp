@@ -1030,8 +1030,7 @@ size_t findNthOccurrence(const std::string& str, char ch, size_t n) {
     return -1;
 }
 
-void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
-{
+void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
     if (cmd.bot_arg.empty())
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "BOT");
@@ -1041,184 +1040,450 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
         }
         return ;
     }
-    if (cmd.bot_arg == "time")
+    std::string arg[6]= {"time","quote","fact", "dad_joke", "dirty_joke", "help"};
+    int i = 0;
+    while(i < 6)
     {
-        std::time_t currentTime = std::time(0);
-        std::string timeString = std::ctime(&currentTime);
-        std::string welcomeMsg = "BOT: Current time: " + timeString;
-        if (send(client.c_fd, welcomeMsg.c_str(), welcomeMsg.length(), 0) == -1)
-        {
-            perror("send");
-        }
+        if (arg[i] == cmd.bot_arg)
+            break;
+        i++;
     }
-    if (cmd.bot_arg == "quote")
+    CURL *curl;
+    std::string data;
+    switch(i)
     {
-        CURL *curl;
-        std::string data;
-        curl = curl_easy_init();
-        if (curl)
-        {
-            curl_easy_setopt(curl, CURLOPT_URL, "https://api.quotable.io/random");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
-            CURLcode res = curl_easy_perform(curl);
-            if (res != CURLE_OK)
+        case 0:
+            std::time_t currentTime;
+            std::string timeString;
+            std::string welcomeMsg;
+            currentTime = std::time(0);
+            timeString = std::ctime(&currentTime);
+            welcomeMsg = "BOT: Current time: " + timeString;
+            if (send(client.c_fd, welcomeMsg.c_str(), welcomeMsg.length(), 0) == -1)
             {
-                // Handle error
+                perror("send");
             }
-            curl_easy_cleanup(curl);
-        }
-        size_t spos = findNthOccurrence(data, '"', 7);
-        size_t epos = findNthOccurrence(data, '"', 8);
-        data = data.substr(spos + 1, (epos - spos) - 1);
-        data += '\n';
-        if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
-        {
-            perror("send");
-        }
-    }
-    if (cmd.bot_arg == "fact")
-    {
-        CURL *curl;
-        std::string data;
-        curl = curl_easy_init();
-        if (curl)
-        {
-            // URL for fetching a random fact
-            curl_easy_setopt(curl, CURLOPT_URL, "https://uselessfacts.jsph.pl/random");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
-            CURLcode res = curl_easy_perform(curl);
-            if (res != CURLE_OK)
+            break;
+        case 1:
+            curl = curl_easy_init();
+            if (curl)
             {
-                // Handle error
-                std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                curl_easy_setopt(curl, CURLOPT_URL, "https://api.quotable.io/random");
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+                CURLcode res = curl_easy_perform(curl);
+                if (res != CURLE_OK)
+                {
+                    // Handle error
+                }
+                curl_easy_cleanup(curl);
             }
-            curl_easy_cleanup(curl);
-        }
-        std::string start_tag = "<blockquote>";
-        std::string end_tag = "</blockquote>";
-
-        // Find the starting position of the quote
-        size_t start_pos = data.find(start_tag);
-        if (start_pos == std::string::npos) {
-            std::cerr << "Error: Could not find starting quote tag." << std::endl;
-            return ;
-        }
-
-        // Find the ending position of the quote
-        size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
-        if (end_pos == std::string::npos) {
-            std::cerr << "Error: Could not find ending quote tag." << std::endl;
-            return ;
-        }
-
-        // Extract the quote text
-        std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
-
-        // Remove any leading/trailing whitespace
-        quote.erase(0, quote.find_first_not_of(" \t"));
-        quote.erase(quote.find_last_not_of(" \t") + 1);
-
-        quote += '\n';
-        if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
-        {
-            perror("send");
-        }
-    }
-    if (cmd.bot_arg == "dad_joke")
-    {
-        CURL *curl;
-        std::string data;
-        curl = curl_easy_init();
-        if (curl)
-        {
-            // Use the I Can Haz Dad Joke API endpoint for a random joke
-            curl_easy_setopt(curl, CURLOPT_URL, "https://icanhazdadjoke.com/");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
-            // Set the header to accept JSON response
-            struct curl_slist *headers = NULL;
-            headers = curl_slist_append(headers, "Accept: application/json");
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-            CURLcode res = curl_easy_perform(curl);
-            if (res != CURLE_OK)
+            size_t spos = findNthOccurrence(data, '"', 7);
+            size_t epos = findNthOccurrence(data, '"', 8);
+            data = data.substr(spos + 1, (epos - spos) - 1);
+            data += '\n';
+            if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
             {
-                // Handle error
+                perror("send");
             }
-            curl_slist_free_all(headers); // Don't forget to free the headers!
-            curl_easy_cleanup(curl);
-        }
-        std::cout << "joke " << data << std::endl;
-        // joke {"id":"0ozAXv4Mmjb","joke":"Why did the tomato blush? Because it saw the salad dressing.","status":200}
-
-        // joke {"id":"NZDlb299Uf","joke":"Where do sheep go to get their hair cut? The baa-baa shop.","status":200}
-        // Assuming the JSON response is well-formed and contains "joke" field
-        // size_t spos = data.find("\"joke\":");
-        // size_t epos = data.find("\"id\":");
-        // if (spos != std::string::npos && epos != std::string::npos)
-        // {
-        //     // Extract the joke text
-        //     data = data.substr(spos + 7, epos - spos - 7);
-        //     // Trim leading and trailing whitespace and quotes
-        //     data.erase(0, data.find_first_not_of(' '));
-        //     data.erase(data.find_last_not_of(' ') + 1);
-        //     data = data.substr(1, data.size() - 2); // Remove leading and trailing quotes
-        std::string start_tag = "joke\":";
-        std::string end_tag = ",\"status\":200";
-
-        // Find the starting position of the quote
-        size_t start_pos = data.find(start_tag);
-        if (start_pos == std::string::npos) {
-            std::cerr << "Error: Could not find starting quote tag." << std::endl;
-            return ;
-        }
-
-        // Find the ending position of the quote
-        size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
-        if (end_pos == std::string::npos) {
-            std::cerr << "Error: Could not find ending quote tag." << std::endl;
-            return ;
-        }
-
-        // Extract the quote text
-        std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
-
-        // Remove any leading/trailing whitespace
-        quote.erase(0, quote.find_first_not_of(" \t"));
-        quote.erase(quote.find_last_not_of(" \t") + 1);
-
-        quote += '\n';
-        if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
-        {
-            perror("send");
-        }
-    }
-    if (cmd.bot_arg == "dirty_joke")
-    {
-        CURL *curl;
-        std::string data;
-        curl = curl_easy_init();
-        if (curl)
-        {
-            curl_easy_setopt(curl, CURLOPT_URL, "https://v2.jokeapi.dev/joke/Any?format=txt&type=single");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
-            CURLcode res = curl_easy_perform(curl);
-            if (res != CURLE_OK)
+            data.clear();
+            break;
+        case 2:
+            curl = curl_easy_init();
+            if (curl)
             {
-                // Handle error
+                // URL for fetching a random fact
+                curl_easy_setopt(curl, CURLOPT_URL, "https://uselessfacts.jsph.pl/random");
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+                CURLcode res = curl_easy_perform(curl);
+                if (res != CURLE_OK)
+                {
+                    // Handle error
+                    std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                }
+                curl_easy_cleanup(curl);
             }
-            curl_easy_cleanup(curl);
-        }
-        // size_t spos = findNthOccurrence(data, '"', 7);
-        // size_t epos = findNthOccurrence(data, '"', 8);
-        // data = data.substr(spos + 1, (epos - spos) - 1);
-        data += '\n';
-        if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
-        {
-            perror("send");
-        }
+            std::string start_tagg = "<blockquote>";
+            std::string end_tagg = "</blockquote>";
+
+            // Find the starting position of the quote
+            size_t start_po = data.find(start_tagg);
+            if (start_po == std::string::npos) {
+                std::cerr << "Error: Could not find starting quote tag." << std::endl;
+                return ;
+            }
+
+            // Find the ending position of the quote
+            size_t end_po = data.find(end_tagg, start_po + start_tagg.length());
+            if (end_po == std::string::npos) {
+                std::cerr << "Error: Could not find ending quote tag." << std::endl;
+                return ;
+            }
+
+            // Extract the quote text
+            std::string quote = data.substr(start_po + start_tagg.length(), end_po - (start_po + start_tagg.length()));
+
+            // Remove any leading/trailing whitespace
+            quote.erase(0, quote.find_first_not_of(" \t"));
+            quote.erase(quote.find_last_not_of(" \t") + 1);
+
+            quote += '\n';
+            if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
+            {
+                perror("send");
+            }
+            data.clear();
+            break;
+        case 3:
+            curl = curl_easy_init();
+            if (curl)
+            {
+                // Use the I Can Haz Dad Joke API endpoint for a random joke
+                curl_easy_setopt(curl, CURLOPT_URL, "https://icanhazdadjoke.com/");
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+                // Set the header to accept JSON response
+                struct curl_slist *headers = NULL;
+                headers = curl_slist_append(headers, "Accept: application/json");
+                curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+                CURLcode res = curl_easy_perform(curl);
+                if (res != CURLE_OK)
+                {
+                    // Handle error
+                }
+                curl_slist_free_all(headers); // Don't forget to free the headers!
+                curl_easy_cleanup(curl);
+            }
+            std::cout << "joke " << data << std::endl;
+            std::string start_ta = "joke\":";
+            std::string end_ta = ",\"status\":200";
+
+            // Find the starting position of the quote
+            size_t start_pos = data.find(start_ta);
+            if (start_pos == std::string::npos) {
+                std::cerr << "Error: Could not find starting quote tag." << std::endl;
+                return ;
+            }
+
+            // Find the ending position of the quote
+            size_t end_pos = data.find(end_ta, start_pos + start_ta.length());
+            if (end_pos == std::string::npos) {
+                std::cerr << "Error: Could not find ending quote tag." << std::endl;
+                return ;
+            }
+
+            // Extract the quote text
+            std::string joke = data.substr(start_pos + start_ta.length(), end_pos - (start_pos + start_ta.length()));
+
+            // Remove any leading/trailing whitespace
+            joke.erase(0, joke.find_first_not_of(" \t"));
+            joke.erase(joke.find_last_not_of(" \t") + 1);
+
+            joke += '\n';
+            if (send(client.c_fd, joke.c_str(), joke.length(), 0) == -1)
+            {
+                perror("send");
+            }
+            data.clear();
+            break;
+        case 4:
+            curl = curl_easy_init();
+            if (curl)
+            {
+                curl_easy_setopt(curl, CURLOPT_URL, "https://v2.jokeapi.dev/joke/Any?format=txt&type=single");
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+                CURLcode res = curl_easy_perform(curl);
+                if (res != CURLE_OK)
+                {
+                    // Handle error
+                }
+                curl_easy_cleanup(curl);
+            }
+            data += '\n';
+            if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
+            {
+                perror("send");
+            }
+            data.clear();
+            break;
+        case 5:
+            struct botcmd {
+                std::string name;
+                std::string description;
+                std::string usage;
+            };
+
+            std::vector<botcmd> commands = {
+                // Define commands and their details here
+                {"USER", "This command is used to set the user's username, hostname, server name, and real name. It's typically sent by the client to the server upon connection to identify the user.\n", "Command: USER\nParameters: <username> 0 * <realname>"},
+                {"NICK", "Changes your nickname on the IRC network. It's used to set or change your nickname, which is how you are identified on the network.\n", "Command: NICK\nParameters: <nickname>"},
+                {"PASS", "Sends a password to the server. This is used for server authentication, allowing users to connect to password-protected servers.\n", "Command: PASS\nParameters: <password>"},
+                {"JOIN", "Joins a specified channel. Users can join channels to participate in discussions or meetings.\n", "Command: JOIN\nParameters: <channel>{,<channel>} [<key>{,<key>}]"},
+                {"PART", "Leaves a specified channel. This command is used to leave a channel you are currently in.", "Command: PART\nParameters: <channel>{,<channel>} [<reason>]"},
+                {"PRIVMSG", "Sends a private message to a user or a channel. It's used for direct communication with other users or for sending messages to a channel.\n", "Command: PRIVMSG\nParameters: <target>{,<target>} <text to be sent>"},
+                {"NOTICE", "Sends a notice to a user or a channel. Notices are similar to private messages but are typically used for system messages or notices from the server.\n", "Command: NOTICE\nParameters: <target>{,<target>} <text to be sent>"},
+                {"QUIT", "Disconnects you from the IRC network. This command is used to leave the IRC network and disconnect from the server.\n", "Command: QUIT\nParameters: [<reason>]"},
+                {"INVITE", "Invites a user to a channel. This command is used to invite another user to join a channel you are currently in.\n", "Command: INVITE\nParameters: <nickname> <channel>"},
+                {"TOPIC", "Changes the topic of a channel. The topic is a short description or subject of the channel's discussion.\n", "Command: TOPIC\nParameters: <channel> [<topic>]"},
+                {"KICK", "Forcefully remove a user from a channel. This command is used by channel operators to remove users from a channel.", "Command: KICK\nParameters: <channel> <user> *( \",\" <user> ) [<comment>]"}
+            };
+
+            // Print header
+            std::cout << "Available IRC Commands:\n\n";
+
+            for (std::vector<botcmd>::const_iterator it = commands.begin(); it != commands.end(); ++it) {
+                const botcmd& command = *it;  // Dereference iterator to access command object
+                std::cout << command.name << ":\n"
+                        << "Description: " << command.description << "\n"
+                        << "Usage: " << command.usage << "\n\n";
+            }
+            break;
+        default :
+            std::string rp = ERR_UNKNOWNCOMMAND(client.ip, cmd.bot_arg);
+            if (send(client.c_fd, rp.c_str(), rp.length(), 0) == -1)
+            {
+                perror("send");
+            }
     }
-    
 }
+
+// void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
+// {
+//     if (cmd.bot_arg.empty())
+//     {
+//         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "BOT");
+//         if (send(client.c_fd, moreparams.c_str(), moreparams.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//         return ;
+//     }
+//     if (cmd.bot_arg == "time")
+//     {
+//         std::time_t currentTime = std::time(0);
+//         std::string timeString = std::ctime(&currentTime);
+//         std::string welcomeMsg = "BOT: Current time: " + timeString;
+//         if (send(client.c_fd, welcomeMsg.c_str(), welcomeMsg.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//     }
+//     if (cmd.bot_arg == "quote")
+//     {
+//         CURL *curl;
+//         std::string data;
+//         curl = curl_easy_init();
+//         if (curl)
+//         {
+//             curl_easy_setopt(curl, CURLOPT_URL, "https://api.quotable.io/random");
+//             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//             CURLcode res = curl_easy_perform(curl);
+//             if (res != CURLE_OK)
+//             {
+//                 // Handle error
+//             }
+//             curl_easy_cleanup(curl);
+//         }
+//         size_t spos = findNthOccurrence(data, '"', 7);
+//         size_t epos = findNthOccurrence(data, '"', 8);
+//         data = data.substr(spos + 1, (epos - spos) - 1);
+//         data += '\n';
+//         if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//     }
+//     if (cmd.bot_arg == "fact")
+//     {
+//         CURL *curl;
+//         std::string data;
+//         curl = curl_easy_init();
+//         if (curl)
+//         {
+//             // URL for fetching a random fact
+//             curl_easy_setopt(curl, CURLOPT_URL, "https://uselessfacts.jsph.pl/random");
+//             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//             CURLcode res = curl_easy_perform(curl);
+//             if (res != CURLE_OK)
+//             {
+//                 // Handle error
+//                 std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+//             }
+//             curl_easy_cleanup(curl);
+//         }
+//         std::string start_tag = "<blockquote>";
+//         std::string end_tag = "</blockquote>";
+
+//         // Find the starting position of the quote
+//         size_t start_pos = data.find(start_tag);
+//         if (start_pos == std::string::npos) {
+//             std::cerr << "Error: Could not find starting quote tag." << std::endl;
+//             return ;
+//         }
+
+//         // Find the ending position of the quote
+//         size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
+//         if (end_pos == std::string::npos) {
+//             std::cerr << "Error: Could not find ending quote tag." << std::endl;
+//             return ;
+//         }
+
+//         // Extract the quote text
+//         std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
+
+//         // Remove any leading/trailing whitespace
+//         quote.erase(0, quote.find_first_not_of(" \t"));
+//         quote.erase(quote.find_last_not_of(" \t") + 1);
+
+//         quote += '\n';
+//         if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//     }
+//     if (cmd.bot_arg == "dad_joke")
+//     {
+//         CURL *curl;
+//         std::string data;
+//         curl = curl_easy_init();
+//         if (curl)
+//         {
+//             // Use the I Can Haz Dad Joke API endpoint for a random joke
+//             curl_easy_setopt(curl, CURLOPT_URL, "https://icanhazdadjoke.com/");
+//             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//             // Set the header to accept JSON response
+//             struct curl_slist *headers = NULL;
+//             headers = curl_slist_append(headers, "Accept: application/json");
+//             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+//             CURLcode res = curl_easy_perform(curl);
+//             if (res != CURLE_OK)
+//             {
+//                 // Handle error
+//             }
+//             curl_slist_free_all(headers); // Don't forget to free the headers!
+//             curl_easy_cleanup(curl);
+//         }
+//         std::cout << "joke " << data << std::endl;
+//         std::string start_tag = "joke\":";
+//         std::string end_tag = ",\"status\":200";
+
+//         // Find the starting position of the quote
+//         size_t start_pos = data.find(start_tag);
+//         if (start_pos == std::string::npos) {
+//             std::cerr << "Error: Could not find starting quote tag." << std::endl;
+//             return ;
+//         }
+
+//         // Find the ending position of the quote
+//         size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
+//         if (end_pos == std::string::npos) {
+//             std::cerr << "Error: Could not find ending quote tag." << std::endl;
+//             return ;
+//         }
+
+//         // Extract the quote text
+//         std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
+
+//         // Remove any leading/trailing whitespace
+//         quote.erase(0, quote.find_first_not_of(" \t"));
+//         quote.erase(quote.find_last_not_of(" \t") + 1);
+
+//         quote += '\n';
+//         if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//     }
+//     if (cmd.bot_arg == "dirty_joke")
+//     {
+//         CURL *curl;
+//         std::string data;
+//         curl = curl_easy_init();
+//         if (curl)
+//         {
+//             curl_easy_setopt(curl, CURLOPT_URL, "https://v2.jokeapi.dev/joke/Any?format=txt&type=single");
+//             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//             CURLcode res = curl_easy_perform(curl);
+//             if (res != CURLE_OK)
+//             {
+//                 // Handle error
+//             }
+//             curl_easy_cleanup(curl);
+//         }
+//         // size_t spos = findNthOccurrence(data, '"', 7);
+//         // size_t epos = findNthOccurrence(data, '"', 8);
+//         // data = data.substr(spos + 1, (epos - spos) - 1);
+//         data += '\n';
+//         if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//     }
+    
+// }
+
+
+
+// "USER: This command is used to set the user's username, hostname, server name, and real name. It's typically sent by the client to the server upon connection to identify the user.\n"
+// "NICK: Changes your nickname on the IRC network. It's used to set or change your nickname, which is how you are identified on the network.\n"
+// "PASS: Sends a password to the server. This is used for server authentication, allowing users to connect to password-protected servers.\n"
+// "JOIN: Joins a specified channel. Users can join channels to participate in discussions or meetings.\n"
+// "PART: Leaves a specified channel. This command is used to leave a channel you are currently in.\n"
+// "PRIVMSG: Sends a private message to a user or a channel. It's used for direct communication with other users or for sending messages to a channel.\n"
+// "NOTICE: Sends a notice to a user or a channel. Notices are similar to private messages but are typically used for system messages or notices from the server.\n"
+// "QUIT: Disconnects you from the IRC network. This command is used to leave the IRC network and disconnect from the server.\n"
+// "INVITE: Invites a user to a channel. This command is used to invite another user to join a channel you are currently in.\n"
+// "TOPIC: Changes the topic of a channel. The topic is a short description or subject of the channel's discussion.\n"
+// "KICK: Removes a user from a channel. This command is used by channel operators to remove users from a channel.\n"
+
+
+
+
+// "Command: USER\nParameters: <username> 0 * <realname>";
+// "Command: NICK\nParameters: <nickname>";
+// "Command: PASS\nParameters: <password>";
+// " Command: JOIN \nParameters: <channel>{,<channel>} [<key>{,<key>}]";
+// "Command: PART\nParameters: <channel>{,<channel>} [<reason>]";
+// "Command: PRIVMSG\nParameters: <target>{,<target>} <text to be sent>";
+// "Command: NOTICE\nParameters: <target>{,<target>} <text to be sent>";
+// "Command: QUIT\nParameters: [<reason>]";
+// "Command: INVITE\nParameters: <nickname> <channel>";
+// "Command: TOPIC\nParameters: <channel> [<topic>]";
+// "Command: KICK\nParameters: <channel> <user> *( \",\" <user> ) [<comment>]";
+
+// struct botCommand {
+//     std::string name;
+//     std::string description;
+//     std::string usage;
+// };
+
+// std::vector<botCommand> commands = {
+//     // Define commands and their details here
+//     {"USER", "This command is used to set the user's username, hostname, server name, and real name. It's typically sent by the client to the server upon connection to identify the user.\n", "Command: USER\nParameters: <username> 0 * <realname>"},
+//     {"NICK", "Changes your nickname on the IRC network. It's used to set or change your nickname, which is how you are identified on the network.\n", "Command: NICK\nParameters: <nickname>"},
+//     {"PASS", "Sends a password to the server. This is used for server authentication, allowing users to connect to password-protected servers.\n", "Command: PASS\nParameters: <password>"},
+//     {"JOIN", "Joins a specified channel. Users can join channels to participate in discussions or meetings.\n", "Command: JOIN\nParameters: <channel>{,<channel>} [<key>{,<key>}]"},
+//     {"PART", "Leaves a specified channel. This command is used to leave a channel you are currently in.", "Command: PART\nParameters: <channel>{,<channel>} [<reason>]"},
+//     {"PRIVMSG", "Sends a private message to a user or a channel. It's used for direct communication with other users or for sending messages to a channel.\n", "Command: PRIVMSG\nParameters: <target>{,<target>} <text to be sent>"},
+//     {"NOTICE", "Sends a notice to a user or a channel. Notices are similar to private messages but are typically used for system messages or notices from the server.\n", "Command: NOTICE\nParameters: <target>{,<target>} <text to be sent>"},
+//     {"QUIT", "Disconnects you from the IRC network. This command is used to leave the IRC network and disconnect from the server.\n", "Command: QUIT\nParameters: [<reason>]"},
+//     {"INVITE", "Invites a user to a channel. This command is used to invite another user to join a channel you are currently in.\n", "Command: INVITE\nParameters: <nickname> <channel>"},
+//     {"TOPIC", "Changes the topic of a channel. The topic is a short description or subject of the channel's discussion.\n", "Command: TOPIC\nParameters: <channel> [<topic>]"},
+//     {"KICK", "Forcefully remove a user from a channel. This command is used by channel operators to remove users from a channel.", "Command: KICK\nParameters: <channel> <user> *( \",\" <user> ) [<comment>]"}
+// };
+
+//     // Print header
+//     std::cout << "Available IRC Commands:\n\n";
+
+//     // Display each command's description and usage
+//     for (const botCommand& command : commands) {
+//         std::cout << command.name << ":\n"
+//                   << "Description: " << command.description << "\n"
+//                   << "Usage: " << command.usage << "\n\n";
+//     }
