@@ -90,7 +90,7 @@ size_t iscommand(std::string &str)
     return 0;
 }
 
-void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients)
+void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server)
 {
     // command JOIN | args #ch | cmd 
     mainstring = str;
@@ -154,11 +154,11 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
             invitecommand();
             invite(chan,cmd,client,clients);
         }
-        // else if (command == "QUIT")
-        // {
-        //     quitcommand();
-        //     quit(chan, cmd, client, clients);
-        // }
+        else if (command == "QUIT")
+        {
+            quitcommand();
+            quit(chan, cmd, client, clients, server);
+        }
         else if (command == "PART")
         {
             partcommand();

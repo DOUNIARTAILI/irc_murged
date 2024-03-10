@@ -19,7 +19,9 @@ std::string normalize_string(std::string f)
     return s;
 }
 
+Server::Server(){
 
+}
 void Server::addUser(int fd, std::string ip)
 {
     Clientx user(fd, ip);
@@ -522,6 +524,8 @@ void Server::handleClientDataMsg(int fd)
         // Got error or connection closed by client
         if (nbytes == 0) {
             // Connection closed
+            // clientsList.erase(clientsList.begin() + index);
+            this->clients_list.erase(it);
             printf("pollserver: socket %d hung up\n", sender_fd);
         } else {
             perror("recv");
@@ -538,12 +542,13 @@ void Server::handleClientDataMsg(int fd)
         // Process received data
         // buf[nbytes] = '\0';  // Ensure null-termination
         Command cmd;
+        Server server;
         // cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
         if (it->cmd.find("\n") != std::string::npos)
         {
             if (it->connected == true){
                 puts("no");
-                cmd.getcommand(it->cmd, this->channels, cmd, *it, this->clients_list); //should change it to list
+                cmd.getcommand(it->cmd, this->channels, cmd, *it, this->clients_list, server); //should change it to list
             }
             else
             {

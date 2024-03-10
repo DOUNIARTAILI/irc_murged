@@ -6,8 +6,9 @@
 #include<list>
 #include<map>
 #include <arpa/inet.h>
-#include<curl/curl.h>
+#include <curl/curl.h>
 
+#include "server.hpp"
 std::string my_hostname();
 #define Hostname ":" + my_hostname()
 //replies
@@ -88,7 +89,7 @@ class Command
 
     Command();
     ~Command();
-   void getcommand(std::string const &str, std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients);
+   void getcommand(std::string const &str, std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server);
 
     void joincommand();
     void kickcommand();
@@ -105,7 +106,7 @@ class Command
 void join(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void kick(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void part(std::vector<Channel>&chan, Command &cmd, Clientx &client);
-void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients);
+void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server);
 void nick(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients);
 void prv(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients);
 void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::list<Clientx>&clients);
@@ -114,3 +115,4 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<
 void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void broadcast(std::vector<Clientx *> &clients, std::string msg);
 void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client);
+void broadcast2(std::list<Clientx> &clients, std::string msg);

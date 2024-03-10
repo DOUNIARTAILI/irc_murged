@@ -344,41 +344,71 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<
 // Function to quit a client from a specific channel
 // void quit_channel(Channel& channel, int fd)
 // {
-//     std::vector<Clientx*>::iterator itu = std::find(channel.user_list.begin(), channel.user_list.end(), fd);
-//     std::vector<Clientx*>::iterator ito = std::find(channel.op_list.begin(), channel.op_list.end(), fd);
-//     std::vector<Clientx*>::iterator iti = std::find(channel.inv_list.begin(), channel.inv_list.end(), fd);
+//     // std::vector<Clientx*>::iterator itu = std::find(channel.user_list.begin(), channel.user_list.end(), fd);
+//     // std::vector<Clientx*>::iterator ito = std::find(channel.op_list.begin(), channel.op_list.end(), fd);
+//     // std::vector<Clientx*>::iterator iti = std::find(channel.inv_list.begin(), channel.inv_list.end(), fd);
 
-//     if (itu != channel.user_list.end()) {
-//         channel.user_list.erase(itu);
-//     }
-//     if (ito != channel.op_list.end()) {
-//         channel.op_list.erase(ito);
-//     }
-//     if (iti != channel.inv_list.end()) {
-//         channel.inv_list.erase(iti);
-//     }
+//     // if (itu != channel.user_list.end()) {
+//     //     channel.user_list.erase(itu);
+//     // }
+//     // if (ito != channel.op_list.end()) {
+//     //     channel.op_list.erase(ito);
+//     // }
+//     // if (iti != channel.inv_list.end()) {
+//     //     channel.inv_list.erase(iti);
+//     // }
+//     // std::vector<Clientx*>::iterator itu = channel.begin();
+//     // for (; itu != channel.user_list.end(); itu++){
+//     //     if (itu.)
+//     // }
+
+// removing client from channels
+// size_t i = 0;
+// while (i < chan.size()){
+//     quit_channel(chan[i], client.c_fd); 
+//     i++;
 // }
 
-// void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::vector<Clientx> &clients);
-// {
-//     // removing client from channels
-//     size_t i = 0;
-//     while (i < chan.size()){
-//         quit_channel(chan[i], client.c_fd); 
-//         i++;
-//     }
-//     // removing client from clientList
-//     std::vector<Clientx>::iterator it = std::find(clients.begin(), clients.end(), client.c_fd);
-//     if (it != clients.end()) {
-//         clients.erase(it);
-//     }
-//     close(client.c_fd);
-//     if (!clients.empty()) {
-//         del_from_pfds(client.c_fd);
-//     }
-//     std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
-//     broadcast2(clients, quitmsg);
-// }
+void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server)
+{
+    size_t i = 0;
+    while(i < cmd.channel.size())
+    {
+        std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
+        if (it != chan.end())
+        {
+            if (it->is_user(client.nickname))
+            {
+                it->remove_user(client.nickname);
+                if (it->user_list.size() == 0)
+                    chan.erase(it);
+            }
+            if (it->is_operator(client.nickname))
+            {
+                it->remove_operator(client.nickname);
+                if (it->user_list.size() == 0)
+                    chan.erase(it);
+            }
+            if (it->is_invite(client.nickname))
+            {
+                it->remove_invite(client);
+                if (it->user_list.size() == 0)
+                    chan.erase(it);
+            }
+        }
+    }
+    // removing client from clientList
+    std::list<Clientx>::iterator itl = std::find(clients.begin(), clients.end(), client);
+    if (itl != clients.end()) {
+        clients.erase(itl);
+    }
+    close(client.c_fd);
+    if (!clients.empty()) {
+        server.del_from_pfds(client.c_fd);
+    }
+    std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
+    broadcast2(clients, quitmsg);
+}
 
 //bot
 //motivational quote

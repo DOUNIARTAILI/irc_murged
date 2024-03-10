@@ -195,6 +195,7 @@ private:
 
     int listenerSock; 
 public:
+    Server();
     Server(const std::string &port, const std::string pass); 
     std::vector<pollfd> &getPfds();
 
