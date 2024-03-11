@@ -78,6 +78,7 @@ std::string usersonchan(Channel &channel)
 void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 {
     size_t i = 0;
+    // std::cout<<"channel size => "<<cmd.channel.size()<<std::endl;
     if (cmd.command_arg.size() > 0)
     {
         while(i < cmd.channel.size())
@@ -87,6 +88,7 @@ void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
             std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
             if (it != chan.end())
             {
+                // std::cout<<"chnanel >> "<<it->name<<std::endl;
                 if (it->user_list.size() >= it->max_users && it->mode.find('l') != std::string::npos)
                 {
                     std::string maxusers = ERR_CHANNELISFULL(client.nickname, cmd.channel[i].first);
@@ -372,30 +374,25 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<
 void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server)
 {
     size_t i = 0;
-    while(i < cmd.channel.size())
+    std::vector<Channel>::iterator iter = chan.begin();
+    
+
+
+    while(iter != chan.end())
     {
-        std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
-        if (it != chan.end())
+        if (iter->is_user(client.nickname))
         {
-            if (it->is_user(client.nickname))
-            {
-                it->remove_user(client.nickname);
-                if (it->user_list.size() == 0)
-                    chan.erase(it);
-            }
-            if (it->is_operator(client.nickname))
-            {
-                it->remove_operator(client.nickname);
-                if (it->user_list.size() == 0)
-                    chan.erase(it);
-            }
-            if (it->is_invite(client.nickname))
-            {
-                it->remove_invite(client);
-                if (it->user_list.size() == 0)
-                    chan.erase(it);
-            }
+            iter->remove_user(client.nickname);
+            iter->remove_operator(client.nickname);
+            iter->remove_invite(client);
+
+            if (iter->user_list.empty())
+                iter = chan.erase(iter); // Update the iterator after erasing
+            else 
+                ++iter;
         }
+        else
+            ++iter;
     }
     // removing client from clientList
     std::list<Clientx>::iterator itl = std::find(clients.begin(), clients.end(), client);
