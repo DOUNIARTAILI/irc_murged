@@ -160,7 +160,7 @@ void kick(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 {
     size_t i = 0;
     // size_t x = 0;
-    size_t j = 0;
+    // size_t j = 0;
     if (cmd.command_arg.size() > 0)
     {
             std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[0].first));
@@ -373,7 +373,7 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<
 
 void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server)
 {
-    size_t i = 0;
+
     std::vector<Channel>::iterator iter = chan.begin();
     
 
@@ -493,13 +493,15 @@ void prv(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Cli
                 std::list<Clientx>::iterator it = std::find(clients.begin(), clients.end(), Clientx(cmd.privmsg_list[i]));
                 if (it != clients.end())
                 {
-                    std::string privmsg = PRIVMSG(client.nickname, client.username, client.ip, cmd.privmsg_list[i], cmd.privmessage);
-                    write(it->c_fd, privmsg.c_str(), privmsg.size());
+                    std::string privmsg = PRIVMSG(client.nickname, client.username, client.ip, it->nickname, cmd.privmessage);
+                    // write(it->c_fd, privmsg.c_str(), privmsg.size());
+                    send(it->c_fd, privmsg.c_str(), privmsg.size(), 0);
                 }
                 else
                 {
                     std::string nosuchnick = ERR_NOSUCHNICK(client.nickname, cmd.privmsg_list[i]);
-                    write(client.c_fd, nosuchnick.c_str(), nosuchnick.size());
+                    // write(client.c_fd, nosuchnick.c_str(), nosuchnick.size());
+                    send(client.c_fd, nosuchnick.c_str(), nosuchnick.size(), 0);
                 }
             }
             i++;
@@ -736,186 +738,202 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                 {
                     if (cmd.mode[i].second != 's' && cmd.mode[i].second != 'n')
                     {
-                    if (cmd.mode[i].second == 'i')
-                    {
-                        if (cmd.mode[i].first == '+')
-                            it->mode += cmd.mode[i].second;
-                        else if (cmd.mode[i].first == '-')
+                        if (cmd.mode[i].second == 'i')//first +- second char
                         {
-                            std::cout<<"value = "<<it->mode.find(cmd.mode[i].second)<<std::endl;
-                            size_t pos = it->mode.find(cmd.mode[i].second);
-                            if (pos != std::string::npos)
-                                it->mode.erase(it->mode.find(cmd.mode[i].second));
-                        }
-                    }
-                    if (cmd.mode[i].second == 't')
-                    {
-                        std::cout<<cmd.mode[i].first<<std::endl;
-                        if (cmd.mode[i].first == '+')
-                            it->mode += cmd.mode[i].second;
-                        else if (cmd.mode[i].first == '-')
-                        {
-                            size_t pos = it->mode.find(cmd.mode[i].second);
-                            if (pos != std::string::npos)
-                                it->mode.erase(it->mode.find(cmd.mode[i].second), 1);
-                        }
-                    }
-                    if (cmd.mode[i].second == 'l')
-                    {
-                        if (cmd.mode[i].first == '+')
-                        {
-                            if (cmd.mode_args.size() > x)
+                            if (cmd.mode[i].first == '+')
+                                it->mode += 'i';
+                            else if (cmd.mode[i].first == '-')
                             {
-                                it->mode += cmd.mode[i].second;
-                                it->max_users = atoi(cmd.mode_args[x].c_str());
-                                it->mode_param += cmd.mode_args[x] + ' ';
+                                std::cout<<"value = "<<it->mode.find(cmd.mode[i].second)<<std::endl;
+                                size_t pos = it->mode.find('i');
+                                if (pos != std::string::npos)
+                                    it->mode.erase(it->mode.find('i'));
                             }
-                            else
+                        }
+                        if (cmd.mode[i].second == 't')
+                        {
+                            std::cout<<cmd.mode[i].first<<std::endl;
+                            if (cmd.mode[i].first == '+')
+                                it->mode += 't';
+                            else if (cmd.mode[i].first == '-')
                             {
-                                std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +l");
-                                write(client.c_fd, moreparams.c_str(), moreparams.size());
+                                size_t pos = it->mode.find('t');
+                                if (pos != std::string::npos)
+                                    it->mode.erase(it->mode.find('t'), 1);
                             }
-                               x++;
                         }
-                        else if (cmd.mode[i].first == '-')
+                        if (cmd.mode[i].second == 'l')
                         {
-                            size_t pos = it->mode.find(cmd.mode[i].second);
-                            if (pos != std::string::npos)
-                                it->mode.erase(it->mode.find(cmd.mode[i].second));
-                        }
-                    }
-                    if (cmd.mode[i].second == 'o')
-                    {
-                        if (cmd.mode[i].first == '+')
-                        {
-                            if (cmd.mode_args.size() > x)
+                            if (cmd.mode[i].first == '+')
                             {
-                                std::vector<Clientx *>::iterator it2 = std::find(it->user_list.begin(), it->user_list.end(), it->nickcmp(cmd.mode_args[x]));
-                                if (it2 != it->user_list.end())
+                                if (cmd.mode_args.size() > x)
                                 {
-                                    if (!it->is_operator((*it2)->nickname))
-                                    {  
-                                        it->mode += cmd.mode[i].second;
-                                        it->mode_param += cmd.mode_args[x] + ' ';
-                                        it->add_operator(*(*it2));
-                                    }
-                                }
-                                else
-                                {
-                                    std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
-                                    write(client.c_fd, user_not_found.c_str(), user_not_found.size());
-                                }
-                            }
-                            else
-                            {
-                                std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +o");
-                                write(client.c_fd, moreparams.c_str(), moreparams.size());
-                            }
-                        }
-                        else if (cmd.mode[i].first == '-')
-                        {
-                            size_t pos = it->mode.find(cmd.mode[i].second);
-                            if (pos != std::string::npos)
-                                it->mode.erase(it->mode.find(cmd.mode[i].second));
-                            if (cmd.mode_args.size() > x)
-                            {
-                                std::vector<Clientx *>::iterator it2 = std::find(it->user_list.begin(), it->user_list.end(), it->nickcmp(cmd.mode_args[x]));
-                                if (it2 != it->user_list.end())
-                                {
-                                    char found = it->mode_param.find(cmd.mode_args[x]);
-                                    if (found != std::string::npos)
+                                    int max_users = atoi(cmd.mode_args[x].c_str());
+                                    bool b = false;
+                                    if (max_users > 0 && b == false)
                                     {
-                                        it->mode_param.erase(it->mode_param.find(cmd.mode_args[x]), cmd.mode_args[x].size());
-                                        it->remove_operator(cmd.mode_args[x]);
+                                        it->mode += 'l';
+                                        it->max_users = atoi(cmd.mode_args[x].c_str());
+                                        std::cout << "argument dial l = "<< cmd.mode_args[x] << std::endl;
                                         it->mode_param += cmd.mode_args[x] + ' ';
+                                        b = true;
                                     }
                                 }
                                 else
                                 {
-                                    std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
-                                    write(client.c_fd, user_not_found.c_str(), user_not_found.size());
+                                    std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +l");
+                                    write(client.c_fd, moreparams.c_str(), moreparams.size());
                                 }
+                                x++;
                             }
-                            else
+                            else if (cmd.mode[i].first == '-')
                             {
-                                std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -o");
-                                write(client.c_fd, moreparams.c_str(), moreparams.size());
+                                size_t pos = it->mode.find(cmd.mode[i].second);
+                                if (pos != std::string::npos)
+                                    it->mode.erase(it->mode.find(cmd.mode[i].second));
                             }
                         }
-                        x++;
-                    }
-                    if (cmd.mode[i].second == 'k')
-                    {
-                        if (cmd.mode[i].first == '+') 
+                        if (cmd.mode[i].second == 'o')
                         {
-                            if (cmd.mode_args.size() > x)
+                            if (cmd.mode[i].first == '+')
+                            {
+                                if (cmd.mode_args.size() > x)
+                                {
+                                    std::vector<Clientx *>::iterator it2 = std::find(it->user_list.begin(), it->user_list.end(), it->nickcmp(cmd.mode_args[x]));
+                                    if (it2 != it->user_list.end())
+                                    {
+                                        if (!it->is_operator((*it2)->nickname))
+                                        {  
+                                            it->mode += cmd.mode[i].second;
+                                            it->mode_param += cmd.mode_args[x] + ' ';
+                                            it->add_operator(*(*it2));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
+                                        write(client.c_fd, user_not_found.c_str(), user_not_found.size());
+                                    }
+                                }
+                                else
+                                {
+                                    std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +o");
+                                    write(client.c_fd, moreparams.c_str(), moreparams.size());
+                                }
+                            }
+                            else if (cmd.mode[i].first == '-')
+                            {
+                                size_t pos = it->mode.find(cmd.mode[i].second);
+                                if (pos != std::string::npos)
+                                    it->mode.erase(it->mode.find(cmd.mode[i].second));
+                                if (cmd.mode_args.size() > x)
+                                {
+                                    std::vector<Clientx *>::iterator it2 = std::find(it->user_list.begin(), it->user_list.end(), it->nickcmp(cmd.mode_args[x]));
+                                     if (it2 != it->user_list.end())
+                                    {
+                                        // it->mode += cmd.mode[i].second;
+                                        //     it->add_operator(*(*it2));
+                                        // size_t found = it->mode.find('o');
+                                        // if ()
+                                        // it->mode += cmd.mode[i].second;
+
+                                            it->mode_param += cmd.mode_args[x] + ' ';
+                                            it->remove_operator(cmd.mode_args[x]);
+                                        // size_t found = it->mode.find(cmd.mode_args[x]);
+                                        // if (found != std::string::npos)
+                                        // {
+                                        //     it->mode.erase(found, cmd.mode_args[x].length());
+                                        //     it->mode_param += cmd.mode_args[x] + ' ';
+                                        //     it->remove_operator(cmd.mode_args[x]);
+                                        //     std::cout<<"MODE param -o =====> "<<it->mode_param<<std::endl;
+                                        // }
+                                    }
+                                    else
+                                    {
+                                        std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
+                                        write(client.c_fd, user_not_found.c_str(), user_not_found.size());
+                                    }
+                                }
+                                else
+                                {
+                                    std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -o");
+                                    write(client.c_fd, moreparams.c_str(), moreparams.size());
+                                }
+                            }
+                            x++;
+                        }
+                        if (cmd.mode[i].second == 'k')
+                        {
+                            if (cmd.mode[i].first == '+') 
+                            {
+                                if (cmd.mode_args.size() > x)
+                                {
+                                    if (!it->k_flag)
+                                    {
+                                        it->k_flag = true;
+                                        it->mode_param += cmd.mode_args[x] + ' ';
+                                        it->mode += cmd.mode[i].second;
+                                        it->pwd = cmd.mode_args[x];
+                                    }
+                                    else
+                                    {
+                                        std::string alreadyset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
+                                        write(client.c_fd, alreadyset.c_str(), alreadyset.size());
+                                    }
+                                }
+                                else
+                                {
+                                    std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +k");
+                                    write(client.c_fd, moreparams.c_str(), moreparams.size());
+                                }
+                            }
+                            else if (cmd.mode[i].first == '-')
                             {
                                 if (!it->k_flag)
-                                {
-                                    it->k_flag = true;
-                                    it->mode_param += cmd.mode_args[x] + ' ';
-                                    it->mode += cmd.mode[i].second;
-                                    it->pwd = cmd.mode_args[x];
-                                }
-                                else
-                                {
-                                    std::string alreadyset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
-                                    write(client.c_fd, alreadyset.c_str(), alreadyset.size());
-                                }
-                            }
-                            else
-                            {
-                                std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +k");
-                                write(client.c_fd, moreparams.c_str(), moreparams.size());
-                            }
-                        }
-                        else if (cmd.mode[i].first == '-')
-                        {
-                            if (!it->k_flag)
-                            {
-                                std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
-                                write(client.c_fd, keynotset.c_str(), keynotset.size());
-                            }
-                            else if (cmd.mode_args.size() > x)
-                            {
-                                // size_t j = 0;
-                                // for (; j < cmd.mode_args.size(); j++)
-                                // {
-                                //     std::cout<<"cmd.mode_args[i] = "<<cmd.mode_args[i]<<std::endl;
-                                //     if (cmd.mode_args[i][j] == ' ')
-                                //         break ;
-                                // }
-                                // std::cout<<"j ==>"<<j<<std::endl;
-                                size_t pos = it->mode.find(cmd.mode[i].second);
-                                size_t pos2 = it->mode_param.find(cmd.mode_args[x]);
-                                if (pos != std::string::npos)
-                                {
-                                    it->pwd = cmd.mode_args[x];
-                                    // std::cout << "password is :" << it->pwd << std::endl;
-                                    it->mode.erase(it->mode.find(cmd.mode[i].second));
-                                }
-                                else
                                 {
                                     std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
                                     write(client.c_fd, keynotset.c_str(), keynotset.size());
                                 }
-                                if (it->pwd == cmd.mode_args[x])
+                                else if (cmd.mode_args.size() > x)
                                 {
-                                    it->pwd = cmd.mode_args[x];
-                                    if (pos2 != std::string::npos)
+                                    // size_t j = 0;
+                                    // for (; j < cmd.mode_args.size(); j++)
+                                    // {
+                                    //     std::cout<<"cmd.mode_args[i] = "<<cmd.mode_args[i]<<std::endl;
+                                    //     if (cmd.mode_args[i][j] == ' ')
+                                    //         break ;
+                                    // }
+                                    // std::cout<<"j ==>"<<j<<std::endl;
+                                    size_t pos = it->mode.find(cmd.mode[i].second);
+                                    size_t pos2 = it->mode_param.find(cmd.mode_args[x]);
+                                    if (pos != std::string::npos)
                                     {
-                                        it->mode_param.erase(it->mode_param.find(cmd.mode_args[x]), cmd.mode_args[x].size());
-                                        std::cout<<"------------------->"<<it->mode_param<<std::endl;
-                                        it->k_flag = false;
+                                        it->pwd = cmd.mode_args[x];
+                                        // std::cout << "password is :" << it->pwd << std::endl;
+                                        it->mode.erase(it->mode.find(cmd.mode[i].second));
+                                    }
+                                    else
+                                    {
+                                        std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
+                                        write(client.c_fd, keynotset.c_str(), keynotset.size());
+                                    }
+                                    if (it->pwd == cmd.mode_args[x])
+                                    {
+                                        it->pwd = cmd.mode_args[x];
+                                        if (pos2 != std::string::npos)
+                                        {
+                                            it->mode_param.erase(it->mode_param.find(cmd.mode_args[x]), cmd.mode_args[x].size());
+                                            std::cout<<"------------------->"<<it->mode_param<<std::endl;
+                                            it->k_flag = false;
+                                        }
                                     }
                                 }
+                                else
+                                {
+                                    std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -k");
+                                    write(client.c_fd, moreparams.c_str(), moreparams.size());
+                                }
                             }
-                            else
-                            {
-                                std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -k");
-                                write(client.c_fd, moreparams.c_str(), moreparams.size());
-                            }
-                        }
                         x++;
                     }
                     if (cmd.mode[i].second != 'i' && cmd.mode[i].second != 't' && cmd.mode[i].second != 'l' && cmd.mode[i].second != 'o' && cmd.mode[i].second != 'k')
@@ -972,12 +990,15 @@ std::string print_update(std::string const &oldstring, std::string const &newstr
     std::string result;
     bool sign = false;
 
-    // Check for characters in oldstring but not in newstring
-    for (char c : oldstring) {
+    for (size_t i = 0; i < oldstring.length(); ++i)
+    {
+        char c = oldstring[i];
         if (c == ' ')
-            break ;
-        if ((c != '+' || c != '-') && newstring.find(c) == std::string::npos) {
-            if (!sign) {
+            break;
+        if ((c != '+') && newstring.find(c) == std::string::npos)
+        {
+            if (!sign)
+            {
                 sign = true;
                 result += "-";
             }
@@ -987,12 +1008,12 @@ std::string print_update(std::string const &oldstring, std::string const &newstr
 
     sign = false;
 
-    // Check for characters in newstring but not in oldstring
-    for (char c : newstring)
+    for (size_t i = 0; i < newstring.length(); ++i)
     {
+        char c = newstring[i];
         if (c == ' ')
-            break ;
-        if ((c != '+' || c != '-') && oldstring.find(c) == std::string::npos)
+            break;
+        if ((c != '+') && oldstring.find(c) == std::string::npos)
         {
             if (!sign)
             {
@@ -1027,7 +1048,9 @@ size_t findNthOccurrence(const std::string& str, char ch, size_t n) {
     return -1;
 }
 
-void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
+void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
+{
+    (void)chan;
     if (cmd.bot_arg.empty())
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "BOT");
@@ -1053,7 +1076,8 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
             std::time_t currentTime = std::time(0);
             std::string timeString = std::ctime(&currentTime);
             std::string welcomeMsg = "BOT: Current time: " + timeString;
-            if (send(client.c_fd, welcomeMsg.c_str(), welcomeMsg.length(), 0) == -1)
+            std::string motod = RPL_MOTD(client.nickname, welcomeMsg);
+            if (send(client.c_fd, motod.c_str(), motod .length(), 0) == -1)
             {
                 perror("send");
             }
@@ -1080,7 +1104,8 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
                 size_t epos = findNthOccurrence(data, '"', 8);
                 data = data.substr(spos + 1, (epos - spos) - 1);
                 data += '\n';
-                if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
+                std::string motod = RPL_MOTD(client.nickname, data);
+                if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
                 {
                     perror("send");
                 }
@@ -1130,7 +1155,8 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
                 quote.erase(quote.find_last_not_of(" \t") + 1);
 
                 quote += '\n';
-                if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
+                std::string motod = RPL_MOTD(client.nickname, quote);
+                if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
                 {
                     perror("send");
                 }
@@ -1185,7 +1211,8 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
                 quote.erase(quote.find_last_not_of(" \t") + 1);
 
                 quote += '\n';
-                if (send(client.c_fd, quote.c_str(), quote.length(), 0) == -1)
+                std::string motod = RPL_MOTD(client.nickname, quote);
+                if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
                 {
                     perror("send");
                 }
@@ -1212,7 +1239,8 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
                 // size_t epos = findNthOccurrence(data, '"', 8);
                 // data = data.substr(spos + 1, (epos - spos) - 1);
                 data += '\n';
-                if (send(client.c_fd, data.c_str(), data.length(), 0) == -1)
+                std::string motod = RPL_MOTD(client.nickname, data);
+                if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
                 {
                     perror("send");
                 }
@@ -1220,11 +1248,12 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client){
             }
         case 5:
             {
-                struct botcmd {
-                    std::string name;
-                    std::string description;
-                    std::string usage;
-                };
+                // struct botcmd {
+                //     public:
+                //     std::string name;
+                //     std::string description;
+                //     std::string usage;
+                // };
 
                 std::vector<botcmd> commands;
 

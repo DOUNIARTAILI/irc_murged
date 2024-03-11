@@ -492,12 +492,14 @@ std::vector<std::string> Server::splitt(const std::string &str, char del)
     return v;
 }
 
+void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server);
 
 
 void Server::handleClientDataMsg(int fd)
 {
-    char buf[2048];    // Buffer for client data
-    size_t nbytes = recv(fd, buf, sizeof buf, 0);
+    char buf[512];    // Buffer for client data
+    memset(buf, 0, 512);
+    size_t nbytes = read(fd, buf, 512);
     buf[nbytes] = '\0';
     // Clientx user;
     
@@ -523,9 +525,11 @@ void Server::handleClientDataMsg(int fd)
 
         // Got error or connection closed by client
         if (nbytes == 0) {
+            // Command obj;
             // Connection closed
             // clientsList.erase(clientsList.begin() + index);
-            this->clients_list.erase(it);
+            // this->clients_list.erase(it);
+            // quit(this->channels,obj, *it, this->clients_list, this); 
             printf("pollserver: socket %d hung up\n", sender_fd);
         } else {
             perror("recv");
@@ -556,7 +560,7 @@ void Server::handleClientDataMsg(int fd)
                 // try {
                     puts("yup");
                     // std::cout << "fd =>" << pfds[index].fd << std::endl;
-                    std::cout << "i dyal clientsList  " << index << std::endl; 
+                    // std::cout << "i dyal clientsList  " << index << std::endl; 
                     this->Authenticate(*it);
                     // this->Authenticate(pfds[index].fd, index);
                 // }

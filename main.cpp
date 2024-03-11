@@ -6,11 +6,14 @@
 int main(int ac, char **av)
 {
     if (ac != 3)
+    {
+        std::cout<<"Usage : ./ircserver PORT[6000 - 7000] password"<<std::endl;
         return 1;
+    }
         // limits ports
     if (std::atoi(av[1]) <= 6000 || std::atoi(av[1]) >= 7000)
     {
-        std::cout<<"Usage : ./irc PORT[6000 - 7000] password"<<std::endl;
+        std::cout<<"Usage : ./ircserver PORT[6000 - 7000] password"<<std::endl;
         return 2;
     }
     Server server(av[1], av[2]);

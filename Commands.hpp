@@ -63,6 +63,7 @@ std::string my_hostname();
 #define NOTICE_MSG(client, username, ipaddr, target, message) ":" + (client) + "!~" + (username) + "@" + (ipaddr) + " NOTICE " + (target) + " :" + (message) + "\r\n"
 #define PART_MSG(nickname, username, ipaddr, channel, reason) ":" + (nickname) + "!~" + (username) + "@" + ipaddr + " PART " + (channel) + " " + (reason) + "\r\n"
 #define INVITE_MSG(client, username, ipaddr, target, channel) ":" + (client) + "!~" + (username) + "@" + (ipaddr) + " INVITE " + (target) + " " + (channel) + "\r\n"
+#define RPL_MOTD(client, sentence) Hostname + " 372 " + (client) + " " + (sentence) + "\r\n"
 
 class Channel;
 class Clientx;
@@ -101,6 +102,13 @@ class Command
     void partcommand();
     void modecommand();
     void botCommand();
+};
+
+struct botcmd
+{
+    std::string name;
+    std::string description;
+    std::string usage;
 };
 
 void join(std::vector<Channel>&chan, Command &cmd, Clientx &client);

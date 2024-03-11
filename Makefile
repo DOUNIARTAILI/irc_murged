@@ -1,10 +1,10 @@
-NAME = irc
+NAME = ircserv
 
 SRC		= Channel.cpp Commands.cpp file.cpp main.cpp server.cpp
 
 CC 		= c++
 
-FLAGS	= -Wall -Wextra -Werror -std=c++98
+FLAGS	= -Wall -Wextra -Werror -std=c++98 -lcurl
 
 OBJS 	= $(SRC:.c=.o)
 

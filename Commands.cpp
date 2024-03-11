@@ -190,19 +190,37 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
 
 void Command::privmsg()
 {
-    if (command_arg.size() > 1)
+    if (command_arg.size() > 0)
     {
-        std::istringstream users(command_arg[0]);
-        std::string tmp;
-        while (std::getline(users, tmp, ','))
-            privmsg_list.push_back(tmp);
-    }
-    if (command_arg.size() >= 2)
-    {
-        size_t pos = mainstring.find(command_arg[1]);
-        privmessage = mainstring.substr(pos);
-        privmessage = privmessage.erase(privmessage.size() - 1);
-    }
+        std::stringstream split(command_arg.at(0));
+        std::string token;
+        while (std::getline(split, token, ','))
+                privmsg_list.push_back(token);
+        if (command_arg.size() > 1)
+        {
+            size_t i = 1;
+            while(i < command_arg.size())
+            {
+                if (command_arg[i][0] == ':')
+                {
+                    size_t pos = mainstring.find(command_arg.at(i)) + 1;
+                    if (mainstring[pos] == '\n')
+                        privmessage = "";
+                    else
+                    {
+                        mainstring = mainstring.substr(pos, mainstring.length() - pos);
+                        pos = mainstring.find_last_not_of("\n");
+                        if (pos != std::string::npos && pos < mainstring.length())
+                            mainstring.erase(pos + 1);
+                        privmessage = mainstring;
+                    }
+                    return ;
+                }
+                ++i;
+            }
+            privmessage = command_arg.at(command_arg.size() - 1);
+        }
+}
 }
 
 void Command::topiccommand()
