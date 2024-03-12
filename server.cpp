@@ -403,6 +403,7 @@ void Server::add_to_pfds(int newfd)
 
 void Server::del_from_pfds(int fdd)
 {
+    puts("dkhal l deletete pfds");
     std::vector<struct pollfd>::iterator it;
     for (it = pfds.begin(); it != pfds.end(); it++) {
         if ((*it).fd == fdd){
@@ -497,10 +498,12 @@ void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Cl
 
 void Server::handleClientDataMsg(int fd)
 {
+    Server server;
     char buf[512];    // Buffer for client data
     memset(buf, 0, 512);
-    size_t nbytes = read(fd, buf, 512);
+    size_t nbytes = recv(fd, buf, 512, 0);
     buf[nbytes] = '\0';
+    std::cout << "nbytes " << nbytes << std::endl;
     // Clientx user;
     
     // guest.c_fd = pfds[index].fd;
@@ -519,6 +522,9 @@ void Server::handleClientDataMsg(int fd)
         if (channels[x].user_list.size() == 0)
             channels.erase(channels.begin() + x);
     }
+
+    Command cmd;
+
     if (nbytes <= 0)
     {
         int sender_fd = fd;
@@ -529,7 +535,10 @@ void Server::handleClientDataMsg(int fd)
             // Connection closed
             // clientsList.erase(clientsList.begin() + index);
             // this->clients_list.erase(it);
-            // quit(this->channels,obj, *it, this->clients_list, this); 
+            // Command cmd;
+            // Server server;
+            puts("blasst signals");
+            quit(this->channels,cmd, *it, this->clients_list, server);
             printf("pollserver: socket %d hung up\n", sender_fd);
         } else {
             perror("recv");
@@ -545,8 +554,8 @@ void Server::handleClientDataMsg(int fd)
     puts("1");
         // Process received data
         // buf[nbytes] = '\0';  // Ensure null-termination
-        Command cmd;
-        Server server;
+        // Command cmd;
+        // Server server;
         // cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
         if (it->cmd.find("\n") != std::string::npos)
         {

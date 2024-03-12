@@ -373,7 +373,7 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<
 
 void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server)
 {
-
+    puts("dkhal l quit");
     std::vector<Channel>::iterator iter = chan.begin();
     
 
