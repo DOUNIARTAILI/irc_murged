@@ -1048,6 +1048,254 @@ size_t findNthOccurrence(const std::string& str, char ch, size_t n) {
     return -1;
 }
 
+// void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
+// {
+//     (void)chan;
+//     if (cmd.bot_arg.empty())
+//     {
+//         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "BOT");
+//         if (send(client.c_fd, moreparams.c_str(), moreparams.length(), 0) == -1)
+//         {
+//             perror("send");
+//         }
+//         return ;
+//     }
+//     std::string arg[6]= {"time","quote","fact", "dad_joke", "dirty_joke", "help"};
+//     int i = 0;
+//     while(i < 6)
+//     {
+//         if (arg[i] == cmd.bot_arg)
+//             break;
+//         i++;
+//     }
+
+//     switch(i)
+//     {
+//         case 0:
+//         {
+//             std::time_t currentTime = std::time(0);
+//             std::string timeString = std::ctime(&currentTime);
+//             std::string welcomeMsg = "BOT: Current time: " + timeString;
+//             std::string motod = RPL_MOTD(client.nickname, welcomeMsg);
+//             if (send(client.c_fd, motod.c_str(), motod .length(), 0) == -1)
+//             {
+//                 perror("send");
+//             }
+//             break;
+//         }
+//         case 1:
+//             {
+//                 CURL *curl;
+//                 std::string data;
+//                 curl = curl_easy_init();
+//                 if (curl)
+//                 {
+//                     curl_easy_setopt(curl, CURLOPT_URL, "https://api.quotable.io/random");
+//                     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//                     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//                     CURLcode res = curl_easy_perform(curl);
+//                     if (res != CURLE_OK)
+//                     {
+//                         // Handle error
+//                     }
+//                     curl_easy_cleanup(curl);
+//                 }
+//                 size_t spos = findNthOccurrence(data, '"', 7);
+//                 size_t epos = findNthOccurrence(data, '"', 8);
+//                 data = data.substr(spos + 1, (epos - spos) - 1);
+//                 data += '\n';
+//                 std::string motod = RPL_MOTD(client.nickname, data);
+//                 if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
+//                 {
+//                     perror("send");
+//                 }
+//                 break;
+//             }
+//         case 2:
+//             {
+//                 CURL *curl;
+//                 std::string data;
+//                 curl = curl_easy_init();
+//                 if (curl)
+//                 {
+//                     // URL for fetching a random fact
+//                     curl_easy_setopt(curl, CURLOPT_URL, "https://uselessfacts.jsph.pl/random");
+//                     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//                     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//                     CURLcode res = curl_easy_perform(curl);
+//                     if (res != CURLE_OK)
+//                     {
+//                         // Handle error
+//                         std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+//                     }
+//                     curl_easy_cleanup(curl);
+//                 }
+//                 std::string start_tag = "<blockquote>";
+//                 std::string end_tag = "</blockquote>";
+
+//                 // Find the starting position of the quote
+//                 size_t start_pos = data.find(start_tag);
+//                 if (start_pos == std::string::npos) {
+//                     std::cerr << "Error: Could not find starting quote tag." << std::endl;
+//                     return ;
+//                 }
+
+//                 // Find the ending position of the quote
+//                 size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
+//                 if (end_pos == std::string::npos) {
+//                     std::cerr << "Error: Could not find ending quote tag." << std::endl;
+//                     return ;
+//                 }
+
+//                 // Extract the quote text
+//                 std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
+
+//                 // Remove any leading/trailing whitespace
+//                 quote.erase(0, quote.find_first_not_of(" \t"));
+//                 quote.erase(quote.find_last_not_of(" \t") + 1);
+
+//                 quote += '\n';
+//                 std::string motod = RPL_MOTD(client.nickname, quote);
+//                 if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
+//                 {
+//                     perror("send");
+//                 }
+//                 break;
+//             }
+//         case 3:
+//             {
+//                 CURL *curl;
+//                 std::string data;
+//                 curl = curl_easy_init();
+//                 if (curl)
+//                 {
+//                     // Use the I Can Haz Dad Joke API endpoint for a random joke
+//                     curl_easy_setopt(curl, CURLOPT_URL, "https://icanhazdadjoke.com/");
+//                     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//                     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//                     // Set the header to accept JSON response
+//                     struct curl_slist *headers = NULL;
+//                     headers = curl_slist_append(headers, "Accept: application/json");
+//                     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+//                     CURLcode res = curl_easy_perform(curl);
+//                     if (res != CURLE_OK)
+//                     {
+//                         // Handle error
+//                     }
+//                     curl_slist_free_all(headers); // Don't forget to free the headers!
+//                     curl_easy_cleanup(curl);
+//                 }
+//                 std::cout << "joke " << data << std::endl;
+//                 std::string start_tag = "joke\":";
+//                 std::string end_tag = ",\"status\":200";
+
+//                 // Find the starting position of the quote
+//                 size_t start_pos = data.find(start_tag);
+//                 if (start_pos == std::string::npos) {
+//                     std::cerr << "Error: Could not find starting quote tag." << std::endl;
+//                     return ;
+//                 }
+
+//                 // Find the ending position of the quote
+//                 size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
+//                 if (end_pos == std::string::npos) {
+//                     std::cerr << "Error: Could not find ending quote tag." << std::endl;
+//                     return ;
+//                 }
+
+//                 // Extract the quote text
+//                 std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
+
+//                 // Remove any leading/trailing whitespace
+//                 quote.erase(0, quote.find_first_not_of(" \t"));
+//                 quote.erase(quote.find_last_not_of(" \t") + 1);
+
+//                 quote += '\n';
+//                 std::string motod = RPL_MOTD(client.nickname, quote);
+//                 if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
+//                 {
+//                     perror("send");
+//                 }
+//                 break;
+//             }
+//         case 4:
+//             {
+//                 CURL *curl;
+//                 std::string data;
+//                 curl = curl_easy_init();
+//                 if (curl)
+//                 {
+//                     curl_easy_setopt(curl, CURLOPT_URL, "https://v2.jokeapi.dev/joke/Any?format=txt&type=single");
+//                     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+//                     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+//                     CURLcode res = curl_easy_perform(curl);
+//                     if (res != CURLE_OK)
+//                     {
+//                         // Handle error
+//                     }
+//                     curl_easy_cleanup(curl);
+//                 }
+//                 // size_t spos = findNthOccurrence(data, '"', 7);
+//                 // size_t epos = findNthOccurrence(data, '"', 8);
+//                 // data = data.substr(spos + 1, (epos - spos) - 1);
+//                 data += '\n';
+//                 std::string motod = RPL_MOTD(client.nickname, data);
+//                 if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
+//                 {
+//                     perror("send");
+//                 }
+//                 break;
+//             }
+//         case 5:
+//             {
+//                 // struct botcmd {
+//                 //     public:
+//                 //     std::string name;
+//                 //     std::string description;
+//                 //     std::string usage;
+//                 // };
+
+//                 std::vector<botcmd> commands;
+
+//                     // Define commands and their details here
+//                 commands.push_back((botcmd){"USER", "This command is used to set the user's username, hostname, server name, and real name. It's typically sent by the client to the server upon connection to identify the user.", "Command: USER\nParameters: <username> 0 * <realname>"});
+//                 commands.push_back((botcmd){"NICK", "Changes your nickname on the IRC network. It's used to set or change your nickname, which is how you are identified on the network.", "Command: NICK\nParameters: <nickname>"});
+//                 commands.push_back((botcmd){"PASS", "Sends a password to the server. This is used for server authentication, allowing users to connect to password-protected servers.", "Command: PASS\nParameters: <password>"});
+//                 commands.push_back((botcmd){"JOIN", "Joins a specified channel. Users can join channels to participate in discussions or meetings.", "Command: JOIN\nParameters: <channel>{,<channel>} [<key>{,<key>}]"});
+//                 commands.push_back((botcmd){"PART", "Leaves a specified channel. This command is used to leave a channel you are currently in.", "Command: PART\nParameters: <channel>{,<channel>} [<reason>]"});
+//                 commands.push_back((botcmd){"PRIVMSG", "Sends a private message to a user or a channel. It's used for direct communication with other users or for sending messages to a channel.", "Command: PRIVMSG\nParameters: <target>{,<target>} <text to be sent>"});
+//                 commands.push_back((botcmd){"NOTICE", "Sends a notice to a user or a channel. Notices are similar to private messages but are typically used for system messages or notices from the server.", "Command: NOTICE\nParameters: <target>{,<target>} <text to be sent>"});
+//                 commands.push_back((botcmd){"QUIT", "Disconnects you from the IRC network. This command is used to leave the IRC network and disconnect from the server.", "Command: QUIT\nParameters: [<reason>]"});
+//                 commands.push_back((botcmd){"INVITE", "Invites a user to a channel. This command is used to invite another user to join a channel you are currently in.", "Command: INVITE\nParameters: <nickname> <channel>"});
+//                 commands.push_back((botcmd){"TOPIC", "Changes the topic of a channel. The topic is a short description or subject of the channel's discussion.", "Command: TOPIC\nParameters: <channel> [<topic>]"});
+//                 commands.push_back((botcmd){"KICK", "Forcefully remove a user from a channel. This command is used by channel operators to remove users from a channel.", "Command: KICK\nParameters: <channel> <user> *( \",\" <user> ) [<comment>]"});
+
+//                 std::stringstream ss;
+//                 ss << "List of Available IRC Commands:\n\n";
+//                 for (std::vector<botcmd>::const_iterator it = commands.begin(); it != commands.end(); ++it) {
+//                     const botcmd& command = *it;
+//                     ss << command.name << ":\n"
+//                     << "Description: " << command.description << "\n"
+//                     << "Usage: " << command.usage << "\n\n";
+//                 }
+
+//                 std::string line = ss.str(); // Convert the stringstream to a std::string
+
+//                 // Assuming client.c_fd is the socket file descriptor for the client
+//                 if (send(client.c_fd, line.c_str(), line.length(), 0) == -1) {
+//                     perror("send");
+//                 }
+//                 break;
+//             }
+//         default :
+//             std::string rp = ERR_UNKNOWNCOMMAND(client.ip, cmd.bot_arg);
+//             if (send(client.c_fd, rp.c_str(), rp.length(), 0) == -1)
+//             {
+//                 perror("send");
+//             }
+//     }
+// }
+
 void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 {
     (void)chan;
@@ -1272,18 +1520,43 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
 
                 std::stringstream ss;
                 ss << "List of Available IRC Commands:\n\n";
+                std::string li = ss.str(); // Convert the stringstream to a std::string
+                li += "\n";
+                std::string motodd = RPL_MOTD(client.nickname, li);
+                if (send(client.c_fd, motodd.c_str(), motodd.length(), 0) == -1) {
+                    perror("send");
+                }
+                std::stringstream oss;
+                // std::string line;
                 for (std::vector<botcmd>::const_iterator it = commands.begin(); it != commands.end(); ++it) {
                     const botcmd& command = *it;
-                    ss << command.name << ":\n"
-                    << "Description: " << command.description << "\n"
-                    << "Usage: " << command.usage << "\n\n";
-                }
-
-                std::string line = ss.str(); // Convert the stringstream to a std::string
-
-                // Assuming client.c_fd is the socket file descriptor for the client
-                if (send(client.c_fd, line.c_str(), line.length(), 0) == -1) {
-                    perror("send");
+                    oss << command.name << ":\n";
+                    std::string l1 = oss.str(); // Convert the stringstream to a std::string
+                    l1 += "\n";
+                    std::string m1 = RPL_MOTD(client.nickname, l1);
+                    if (send(client.c_fd, m1.c_str(), m1.length(), 0) == -1) {
+                        perror("send");
+                    }
+                    oss.str("");
+                    oss.clear();
+                    oss<< "Description: " << command.description << "\n";
+                    std::string l2 = oss.str(); // Convert the stringstream to a std::string
+                    l2 += "\n";
+                    std::string m2 = RPL_MOTD(client.nickname, l2);
+                    if (send(client.c_fd, m2.c_str(), m2.length(), 0) == -1) {
+                        perror("send");
+                    }
+                    oss.str("");
+                    oss.clear();
+                    oss << "Usage: " << command.usage << "\n\n";
+                    std::string l3 = oss.str(); // Convert the stringstream to a std::string
+                    l3 += "\n";
+                    std::string m3 = RPL_MOTD(client.nickname, l3);
+                    if (send(client.c_fd, m3.c_str(), m3.length(), 0) == -1) {
+                        perror("send");
+                    }
+                    oss.str("");
+                    oss.clear();
                 }
                 break;
             }
