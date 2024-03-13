@@ -816,8 +816,14 @@ int_fast16_t checkCHANTYPES(std::string &str){
 // CHANTYPES=&#
 
 // CHANTYPES=#&
-    if (str[0] == '#' || str[0] == '&' || str[0] == ':' || isdigit(str[0]))
+    if (str[0] == '#' || str[0] == '~' || str[0] == '+' || str[0] == '%' || str[0] == '$' || str[0] == '&' || str[0] == ':' || isdigit(str[0]))
         return 0;
+    size_t i = 0;
+    while (i < str.size()){
+        if (str[i] == ',' || str[i] == '*' || str[i] == '?' || str[i] == '!' || str[i] == '@' || str[i] == '.')
+            return 0;
+        i++;
+    }
     return 1;
 }
 
@@ -1061,10 +1067,29 @@ void Server::Authenticate(Clientx &user)
             break;
         default :
             // std::cout << "status connected => " << clientsList[i].connected << std::endl;
-            std::string rp = ERR_UNKNOWNCOMMAND(user.ip, firstarg);
-            if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+            std::string cmd[10]= {"EXIT","JOIN", "BOT","KICK", "TOPIC", "PRIVMSG", "INVITE", "QUIT", "PART", "MODE"};
+            int d = 0;
+            while(d < 10)
             {
-                perror("send");
+                if (cmd[d] == firstarg)
+                    break;
+                d++;
+            }
+            if (d == 10)
+            {
+                std::string rp = ERR_UNKNOWNCOMMAND(user.ip, firstarg);
+                if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+                {
+                    perror("send");
+                }
+            }
+            else
+            {
+                std::string rp = ERR_NOTREGISTERED(user.ip);
+                if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+                {
+                    perror("send");
+                }
             }
             // fdHandler(i);
     }
