@@ -83,8 +83,7 @@ void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
     {
         while(i < cmd.channel.size())
         {
-            if (cmd.channel[i].first[0] != '#')
-                cmd.channel[i].first = '#' + cmd.channel[i].first;
+            //     cmd.channel[i].first = '#' + cmd.channel[i].first;
             std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
             if (it != chan.end())
             {
@@ -123,6 +122,13 @@ void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
             }
             else
             {
+                if (cmd.channel[i].first[0] != '#')
+                {
+                    std::string notonchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[0].first);
+                    write(client.c_fd, notonchannel.c_str(), notonchannel.size());
+                }
+                else
+                {
                 //broadcast !!
                 Channel tmp(cmd.channel[i].first);
                 chan.push_back(tmp);
@@ -134,6 +140,7 @@ void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                 write(client.c_fd, j_rpl.c_str(), j_rpl.size());
                 j_rpl = RPL_ENDOFNAMES(client.nickname, cmd.channel[i].first);
                 write(client.c_fd, j_rpl.c_str(), j_rpl.size());
+                }
             }
             i++;
         }
@@ -551,33 +558,42 @@ void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::list
     {
         while(i < cmd.channel.size())
         {
-            if (cmd.channel[i].first[0] != '#')
-                cmd.channel[i].first = '#' + cmd.channel[i].first;
+            // if (cmd.channel[i].first[0] != '#')
+            //     cmd.channel[i].first = '#' + cmd.channel[i].first;
             std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
             if (it != chan.end())
             {
-                std::cout<<cmd.topic<<std::endl;
-                if (cmd.command_arg.size() == 1 && chan[i].topic.empty())
+                if (!it->is_user(client.nickname))
                 {
-                    std::string topicmsg = RPL_NOTOPIC(client.nickname, cmd.channel[0].first);
-                    write(client.c_fd, topicmsg.c_str(), topicmsg.size());
-                    return ;
+                    std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[i].first);
+                    write(client.c_fd, notonchannel.c_str(), notonchannel.size());
+                    return; 
                 }
+                std::cout<<"|"<<cmd.topic << "|"<<std::endl;
                 if (cmd.command_arg.size() == 1 && !chan[i].topic.empty())
                 {
-                    std::string topicmsg = RPL_TOPIC(client.nickname, cmd.channel[0].first, it->topic);
+                     puts("display topic");
+                    std::string topicmsg = RPL_TOPIC(client.nickname, it->name, it->topic);
                     write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                     std::string topictime = RPL_TOPICWHOTIME(client.nickname, it->name, it->topicsetter,tostr(it->topic_time));
                     write(client.c_fd, topictime.c_str(), topictime.size());
                     return ;
                 }
+                if (cmd.command_arg.size() == 1)
+                {
+                    puts("display topic");
+                    std::string topicmsg = RPL_NOTOPIC(client.nickname, cmd.channel[0].first);
+                    write(client.c_fd, topicmsg.c_str(), topicmsg.size());
+                    return ;
+                }
                 if (cmd.command_arg.size() > 1)
                 {
+                     puts("set topic");
                     if (it->mode.find('t') != std::string::npos)
                     {
                         if (it->is_operator(client.nickname))
                         {
-                            std::string topicmsg = RPL_TOPIC(client.nickname, cmd.channel[i].first, cmd.topic);
+                            std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
                             write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                             it->topic = cmd.topic;
                             it->topicsetter = client.nickname;
@@ -593,7 +609,7 @@ void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::list
                     }
                     if (it->is_user(client.nickname))
                     {
-                        std::string topicmsg = RPL_TOPIC(client.nickname, cmd.channel[i].first, cmd.topic);
+                        std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
                         write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                         it->topic = cmd.topic;
                         it->topic_time = time(NULL);
@@ -601,7 +617,7 @@ void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::list
                     }
                     else
                     {
-                        std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[i].first);
+                        std::string notonchannel = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
                         write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                     }
                 }
@@ -836,9 +852,13 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                                         // size_t found = it->mode.find('o');
                                         // if ()
                                         // it->mode += cmd.mode[i].second;
-
+                                            std::cout<<"client nickname ==>"<<client.nickname<<std::endl;
+                                            std::cout<<"modearg[x] "<<cmd.mode_args[x]<<std::endl;
                                             it->mode_param += cmd.mode_args[x] + ' ';
                                             it->remove_operator(cmd.mode_args[x]);
+                                            // std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, "-o", it->mode_param);
+                                            std::cout<<"modearg[x] "<<cmd.mode_args[x]<<std::endl;
+                                            std::cout<<"client nickname ==>"<<client.nickname<<std::endl;
                                         // size_t found = it->mode.find(cmd.mode_args[x]);
                                         // if (found != std::string::npos)
                                         // {
@@ -892,6 +912,7 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                                 if (!it->k_flag)
                                 {
                                     std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
+                                    puts("hna dkhel 1");
                                     write(client.c_fd, keynotset.c_str(), keynotset.size());
                                 }
                                 else if (cmd.mode_args.size() > x)
@@ -908,18 +929,28 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                                     size_t pos2 = it->mode_param.find(cmd.mode_args[x]);
                                     if (pos != std::string::npos)
                                     {
-                                        it->pwd = cmd.mode_args[x];
+                                        puts("dkhel hna01000");
+                                        it->pwd.clear();
+                                        it->pwd = "";
+                                        it->k_flag = false;
                                         // std::cout << "password is :" << it->pwd << std::endl;
+                                        std::cout<<"|"<<cmd.mode_args[x]<<"|"<<std::endl;
                                         it->mode.erase(it->mode.find(cmd.mode[i].second));
+                                        std::cout<<"|"<<cmd.mode_args[x]<<"|"<<std::endl;
+
                                     }
                                     else
                                     {
+                                                                            puts("hna dkhel 2");
+
                                         std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
                                         write(client.c_fd, keynotset.c_str(), keynotset.size());
                                     }
                                     if (it->pwd == cmd.mode_args[x])
                                     {
-                                        it->pwd = cmd.mode_args[x];
+                                        puts("dkhel hna 123");
+                                        it->pwd.clear();
+                                        it->pwd = "";
                                         if (pos2 != std::string::npos)
                                         {
                                             it->mode_param.erase(it->mode_param.find(cmd.mode_args[x]), cmd.mode_args[x].size());
@@ -961,7 +992,8 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                     std::cout<<"mode param "<<it->mode_param<<std::endl;
                     std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, newmode, it->mode_param);
                     broadcast(it->user_list, modeup);
-                     it->mode_param.clear();
+                    it->mode_param.clear();
+
                     return ;
                 }
                 else

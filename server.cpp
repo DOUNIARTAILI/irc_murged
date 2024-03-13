@@ -972,6 +972,8 @@ std::list<Clientx>::iterator Server::getUserfromClientlist(int fd){
 
 void Server::Authenticate(Clientx &user)
 {
+    try
+    {
     puts("vvv");
     // int i = getUserfromClientlist(fd);
     std::vector<std::string> commandparsed = parcing(user);
@@ -1072,6 +1074,11 @@ void Server::Authenticate(Clientx &user)
     cmds.clear();
     // commandparsed[1] = "";
     // commandparsed[0] = "";
+    }
+    catch(std::exception &e)
+    {
+
+    }
 }
 
     // std::cout << "command parsed : " << std::endl;

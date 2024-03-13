@@ -92,6 +92,8 @@ size_t iscommand(std::string &str)
 
 void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server)
 {
+    try
+    {
     // command JOIN | args #ch | cmd 
     mainstring = str;
     std::string command_args;
@@ -185,6 +187,11 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
             write(client.c_fd, unknowncommand.c_str(), unknowncommand.size());
             return ;
         }
+    }
+    }
+    catch(std::exception &e)
+    {
+        
     }
 }
 

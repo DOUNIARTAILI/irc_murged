@@ -1,0 +1,20 @@
+join de
+:nick!~user@127.0.0.1 JOIN #de
+:e3r1p4.1337.ma 353 nick = #de :@nick
+:e3r1p4.1337.ma 366 nick #de :End of /NAMES list
+expected response :   "<client> <channel> :No such channel" 403
+
+
+
+:nick!~user@127.0.0.1 INVITE df #keychan
+join #keychan lola
+:e3r1p4.1337.ma 471 df #keychan :Cannot join channel (+l)
+expected response : user joined after invite
+join #keychan lola
+:frooo!~a@197.230.30.146 JOIN #keychan
+:erbium.libera.chat 353 frooo @ #keychan :frooo @do
+:erbium.libera.chat 366 frooo #keychan :End of /NAMES list.
+:do!~a@197.230.30.146 PRIVMSG #keychan :kooo
+
+
+
