@@ -443,6 +443,8 @@ void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<
 
 }
 
+
+
 // void Server::fdHandler(int i){
 //     if (i >= 0 && i < clientsList.size()) {
 //         int client_fd = clientsList[i].c_fd;
