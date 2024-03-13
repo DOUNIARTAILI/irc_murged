@@ -20,8 +20,10 @@ class Clientx;
 void broadcast(std::vector<Clientx *> &clients, std::string msg)
 {
     size_t i = 0;
+    std::cout << "size clients " << clients.size() << std::endl;
     while (i < clients.size())
     {
+        std::cout << "nickname " << clients[i]->nickname << std::endl;
         write(clients[i]->c_fd, msg.c_str(), msg.size());
         i++;
     }
@@ -126,6 +128,11 @@ void join(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                 {
                     std::string notonchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[0].first);
                     write(client.c_fd, notonchannel.c_str(), notonchannel.size());
+                }                
+                if (cmd.channel[i].first[0] == '#' && !cmd.channel[i].first[1])
+                {
+                    std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "JOIN #");
+                    write(client.c_fd, moreparams.c_str(), moreparams.size());
                 }
                 else
                 {
@@ -854,6 +861,7 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                                         // it->mode += cmd.mode[i].second;
                                             std::cout<<"client nickname ==>"<<client.nickname<<std::endl;
                                             std::cout<<"modearg[x] "<<cmd.mode_args[x]<<std::endl;
+
                                             it->mode_param += cmd.mode_args[x] + ' ';
                                             it->remove_operator(cmd.mode_args[x]);
                                             // std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, "-o", it->mode_param);
@@ -987,6 +995,8 @@ void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                 //     std::string mode = RPL_CHANNELMODEIS(client.nickname, cmd.channel[0].first, newmode);
                 //     broadcast(it->user_list, mode);
                 // }
+                    puts("*********************************************");
+                    std::cout<<"mnew mode ==> "<<newmode<<std::endl;
                 if (newmode.find("o") != std::string::npos || newmode.find("i") != std::string::npos || newmode.find("t") != std::string::npos || newmode.find("l") != std::string::npos || newmode.find("k") != std::string::npos)
                 {
                     std::cout<<"mode param "<<it->mode_param<<std::endl;
