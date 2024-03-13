@@ -184,7 +184,10 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         {
             std::string unknowncommand = ERR_UNKNOWNCOMMAND(client.nickname, command);
             std::cout<<cmd.command_arg.size()<<std::endl;
-            write(client.c_fd, unknowncommand.c_str(), unknowncommand.size());
+            if (send(client.c_fd, unknowncommand.c_str(), unknowncommand.length(), 0) == -1)
+            {
+                perror("send");
+            }
             return ;
         }
     }
