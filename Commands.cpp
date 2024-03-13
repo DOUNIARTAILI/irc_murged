@@ -120,11 +120,7 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         toupper(command);
         if (command == "PONG")
             return ;
-        if (command == "EXIT")
-        {
-            std::cout<<"Exiting server"<<std::endl;
-            exit(77);
-        }
+
         if (command == "JOIN")
         {
             joincommand();
@@ -178,13 +174,13 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         }
         // else if (command == "LISTNICK")
         //     printallnicknames(clients);
-        else if (command == "LISTCHANNELS")
-            printallchannels(chan);
         else
         {
             std::string unknowncommand = ERR_UNKNOWNCOMMAND(client.nickname, command);
             std::cout<<cmd.command_arg.size()<<std::endl;
-            write(client.c_fd, unknowncommand.c_str(), unknowncommand.size());
+            // write(client.c_fd, unknowncommand.c_str(), unknowncommand.size());
+            if (send(client.c_fd, unknowncommand.c_str(), unknowncommand.size(), 0) == -1)
+                perror("send");
             return ;
         }
     }
