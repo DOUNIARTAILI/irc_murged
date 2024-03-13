@@ -109,6 +109,7 @@ struct botcmd
     std::string name;
     std::string description;
     std::string usage;
+    std::string parameters;
 };
 
 void join(std::vector<Channel>&chan, Command &cmd, Clientx &client);

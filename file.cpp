@@ -1548,17 +1548,17 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                 std::vector<botcmd> commands;
 
                     // Define commands and their details here
-                commands.push_back((botcmd){"USER", "This command is used to set the user's username, hostname, server name, and real name. It's typically sent by the client to the server upon connection to identify the user.", "Command: USER\nParameters: <username> 0 * <realname>"});
-                commands.push_back((botcmd){"NICK", "Changes your nickname on the IRC network. It's used to set or change your nickname, which is how you are identified on the network.", "Command: NICK\nParameters: <nickname>"});
-                commands.push_back((botcmd){"PASS", "Sends a password to the server. This is used for server authentication, allowing users to connect to password-protected servers.", "Command: PASS\nParameters: <password>"});
-                commands.push_back((botcmd){"JOIN", "Joins a specified channel. Users can join channels to participate in discussions or meetings.", "Command: JOIN\nParameters: <channel>{,<channel>} [<key>{,<key>}]"});
-                commands.push_back((botcmd){"PART", "Leaves a specified channel. This command is used to leave a channel you are currently in.", "Command: PART\nParameters: <channel>{,<channel>} [<reason>]"});
-                commands.push_back((botcmd){"PRIVMSG", "Sends a private message to a user or a channel. It's used for direct communication with other users or for sending messages to a channel.", "Command: PRIVMSG\nParameters: <target>{,<target>} <text to be sent>"});
-                commands.push_back((botcmd){"NOTICE", "Sends a notice to a user or a channel. Notices are similar to private messages but are typically used for system messages or notices from the server.", "Command: NOTICE\nParameters: <target>{,<target>} <text to be sent>"});
-                commands.push_back((botcmd){"QUIT", "Disconnects you from the IRC network. This command is used to leave the IRC network and disconnect from the server.", "Command: QUIT\nParameters: [<reason>]"});
-                commands.push_back((botcmd){"INVITE", "Invites a user to a channel. This command is used to invite another user to join a channel you are currently in.", "Command: INVITE\nParameters: <nickname> <channel>"});
-                commands.push_back((botcmd){"TOPIC", "Changes the topic of a channel. The topic is a short description or subject of the channel's discussion.", "Command: TOPIC\nParameters: <channel> [<topic>]"});
-                commands.push_back((botcmd){"KICK", "Forcefully remove a user from a channel. This command is used by channel operators to remove users from a channel.", "Command: KICK\nParameters: <channel> <user> *( \",\" <user> ) [<comment>]"});
+                commands.push_back((botcmd){"USER", "This command is used to set the user's username, hostname, server name, and real name. It's typically sent by the client to the server upon connection to identify the user.", "Command: USER\n", "Parameters: <username> 0 * <realname>"});
+                commands.push_back((botcmd){"NICK", "Changes your nickname on the IRC network. It's used to set or change your nickname, which is how you are identified on the network.", "Command: NICK\n", "Parameters: <nickname>"});
+                commands.push_back((botcmd){"PASS", "Sends a password to the server. This is used for server authentication, allowing users to connect to password-protected servers.", "Command: PASS\n", "Parameters: <password>"});
+                commands.push_back((botcmd){"JOIN", "Joins a specified channel. Users can join channels to participate in discussions or meetings.", "Command: JOIN\n", "Parameters: <channel>{,<channel>} [<key>{,<key>}]"});
+                commands.push_back((botcmd){"PART", "Leaves a specified channel. This command is used to leave a channel you are currently in.", "Command: PART\n", "Parameters: <channel>{,<channel>} [<reason>]"});
+                commands.push_back((botcmd){"PRIVMSG", "Sends a private message to a user or a channel. It's used for direct communication with other users or for sending messages to a channel.", "Command: PRIVMSG\n", "Parameters: <target>{,<target>} <text to be sent>"});
+                commands.push_back((botcmd){"NOTICE", "Sends a notice to a user or a channel. Notices are similar to private messages but are typically used for system messages or notices from the server.", "Command: NOTICE\n", "Parameters: <target>{,<target>} <text to be sent>"});
+                commands.push_back((botcmd){"QUIT", "Disconnects you from the IRC network. This command is used to leave the IRC network and disconnect from the server.", "Command: QUIT\n", "Parameters: [<reason>]"});
+                commands.push_back((botcmd){"INVITE", "Invites a user to a channel. This command is used to invite another user to join a channel you are currently in.", "Command: INVITE\n", "Parameters: <nickname> <channel>"});
+                commands.push_back((botcmd){"TOPIC", "Changes the topic of a channel. The topic is a short description or subject of the channel's discussion.", "Command: TOPIC\n", "Parameters: <channel> [<topic>]"});
+                commands.push_back((botcmd){"KICK", "Forcefully remove a user from a channel. This command is used by channel operators to remove users from a channel.", "Command: KICK\n", "Parameters: <channel> <user> *( \",\" <user> ) [<comment>]"});
 
                 std::stringstream ss;
                 ss << "List of Available IRC Commands:\n\n";
@@ -1595,6 +1595,15 @@ void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client)
                     l3 += "\n";
                     std::string m3 = RPL_MOTD(client.nickname, l3);
                     if (send(client.c_fd, m3.c_str(), m3.length(), 0) == -1) {
+                        perror("send");
+                    }
+                    oss.str("");
+                    oss.clear();
+                    oss << command.parameters << "\n\n";
+                    std::string l4 = oss.str(); // Convert the stringstream to a std::string
+                    l4 += "\n";
+                    std::string m4 = RPL_MOTD(client.nickname, l4);
+                    if (send(client.c_fd, m4.c_str(), m4.length(), 0) == -1) {
                         perror("send");
                     }
                     oss.str("");
