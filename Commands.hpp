@@ -35,7 +35,7 @@ std::string my_hostname();
 #define ERR_NEEDMOREPARAMS(client, command) Hostname +  " 461 " + (client) + " " + (command) + " :Not enough parameters\r\n"
 #define ERR_BADCHANNELKEY(client, channel)   Hostname + " 475 " + (client) + " " + (channel) + " :Cannot join channel (+k)\r\n"
 #define ERR_NOSUCHCHANNEL(client, channel)  Hostname + " 403 " + (client) + " " + (channel) + " :No such channel\r\n"
-#define ERR_NOTONCHANNEL(client, channel)  Hostname + " 442 " + (client) + " " + (channel) + " :You're not on that channel\r\n"
+#define ERR_NOTONCHANNEL(client, channel)  Hostname + " 442 " + (client) + " " + (channel) + " :You're not on that channel\r\n" 
 #define ERR_PASSWDMISTACH(client) Hostname + " 464 " + (client) + " :Password incorrect\r\n"
 #define ERR_NOPASSGIVEN(client) Hostname  + " * :No password  given\r\n"
 #define ERR_CHANOPRIVSNEEDED(client, channel) Hostname +  " 482 " + (client) + " " + (channel) + " :You're not channel operator\r\n"

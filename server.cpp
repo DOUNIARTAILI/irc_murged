@@ -361,12 +361,15 @@ int Server::get_listener_socket()
         }
         
         // Lose the pesky "address already in use" error message
-        setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+        if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0) {
+            perror("setsockopt");
+            continue;
+        }
 
         // we need to set the socket to non-blocking
         if (fcntl(listener, F_SETFL, O_NONBLOCK) == -1) {
             perror("fcntl");
-            exit(1);
+            continue;
         }
 
         if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
@@ -398,6 +401,7 @@ void Server::add_to_pfds(int newfd)
     struct pollfd pfd;
     pfd.fd = newfd;
     pfd.events = POLLIN;
+    pfd.revents = 0;
     pfds.push_back(pfd);
 }
 
@@ -436,10 +440,6 @@ void Server::handleNewConnection(void)
     if (newfdclient == -1) {
         perror("accept");
     } else {
-        if (fcntl(newfdclient, F_SETFL, O_NONBLOCK) == -1) {
-            perror("fcntl");
-            exit(1);
-        }
         add_to_pfds(newfdclient);
         // Clientx user;
         // user.c_fd = newfdclient;

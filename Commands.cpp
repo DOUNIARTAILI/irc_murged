@@ -79,9 +79,9 @@ void Command::kickcommand()
 
 size_t iscommand(std::string &str)
 {
-    std::string command[10] = {"BOT","JOIN", "KICK", "TOPIC", "PRIVMSG", "INVITE", "QUIT", "PART", "NICK", "MODE"};
+    std::string command[12] = {"BOT","JOIN", "KICK", "TOPIC", "PRIVMSG", "INVITE", "QUIT", "PART", "NICK", "MODE", "PASS", "USER"};
     size_t i = 0;
-    while(i < 9)
+    while(i < 12)
     {
         if (str == command[i])
             return 1;
@@ -125,6 +125,20 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         {
             joincommand();
             join(chan, cmd, client);
+        }
+        else if (command == "PASS")
+        {
+            std::string rpl = ERR_ALREADYREGISTERED(client.nickname);
+            if (send(client.c_fd, rpl.c_str(), rpl.size(), 0) == -1)
+                perror("send");
+            return ;
+        }
+        else if (command == "USER")
+        {
+            std::string rpl = ERR_ALREADYREGISTERED(client.nickname);
+            if (send(client.c_fd, rpl.c_str(), rpl.size(), 0) == -1)
+                perror("send");
+            return ;
         }
         else if (command == "BOT")
         {
