@@ -348,10 +348,6 @@ void Command::modecommand()
 
 void Command::botCommand()
 {
-    // puts("bot 2");
-
-    // std::cout<<"Command_arg[1] ==>"<<command_arg[0]<<std::endl;
-    // std::cout<<"command_arg.size() "<<command_arg.size()<<std::endl;
     if (command_arg.size() == 0 || command_arg.size() > 1)
     {
         bot_arg = "";

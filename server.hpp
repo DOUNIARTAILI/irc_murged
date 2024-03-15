@@ -1,57 +1,21 @@
-    #pragma once
-// #include<iostream>
-// #include<sys/socket.h>
-// #include<sys/types.h>
-// #include <netdb.h>
-// #include <unistd.h>
-// #include<vector>
-// #include <poll.h>
-// #include <fcntl.h>
+#pragma once
 #define backlog 7
-// #include<string>
 #include"Channel.hpp"
-// struct addrinfo {
-//     int              ai_flags;     // AI_PASSIVE, AI_CANONNAME, etc.
-//     int              ai_family;    // AF_INET, AF_INET6, AF_UNSPEC
-//     int              ai_socktype;  // SOCK_STREAM, SOCK_DGRAM
-//     int              ai_protocol;  // use 0 for "any"
-//     size_t           ai_addrlen;   // size of ai_addr in bytes
-//     struct sockaddr *ai_addr;      // struct sockaddr_in or _in6
-//     char            *ai_canonname; // full canonical hostname
-//     struct sockaddr_in  *ai_addr_in;
-//     addrinfo *ai_next;      // linked list, next node
-// };
-
-// struct pollfd {
-//     int fd;         // the socket descriptor
-//     short events;   // bitmap of events we're interested in
-//     short revents;  // when poll() returns, bitmap of events that occurred
-// };
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
+#include <vector>
+#include <list>
 
 class Channel;
 
-// class Clientx
-// {
-//     public:
-//     std::string username;
-//     std::string nickname;
-//     std::string realname;
-//     std::string ip;
-//     std::string password;
-//     int c_fd;
-//     Clientx()
-//     {}
-//     Clientx(const std::string &nick)
-//     {
-//         nickname = nick;
-//     }
-//     bool operator==(const Clientx& other)
-//     {
-//         if (nickname == other.nickname)
-//             return true;
-//         return false;
-//     }
-// };
 class Clientx
 {
 public:
@@ -108,68 +72,8 @@ public:
         // delete ipaddr;
     }
 };
-// class Server
-// {
-//     public:
-//         Server(std::string const &port, std::string const &pass);
-//         ~Server();
-//         int _socket;
-//         addrinfo *_addr;
-//         int s_fd;
-//         struct pollfd fds[7];
-//         std::vector<Clientx> clients;
-//         std::vector<Channel> chan;
-//         std::string mybuffer;
-//         void authenticate(int idx);
-// };
-
-// class Server{
-//     public:
-//         /* Attributes */
-//         time_t pingTime;
-//         int             serverFd;
-//         // std::string     sever_ip;
-//         std::string     cmd;
-//         std::string     password;
-//         std::string     port;
-//         struct addrinfo l;
-//         struct addrinfo *p;
-//         struct pollfd   *clientFd;
-//         int botIn;
-//         char ip[100];
-//         std::vector<Channel>        channels;
-//         std::vector<Clientx>   clientsList;
-//         std::vector<std::string>    cmds;        
-//         std::vector<struct pollfd>  clientFdlist;  
-//         /* Methods */ 
-        
-//         Server(std::string const &port, std::string const &pass);
-//         ~Server();
-//         void    createSocket();
-//         void    bindingSocket();
-//         void    socketOnListening();
-//         void    acceptingClient();
-//         void    readingFromClient();
-//         void parseCmd(int i);
-//         void    auth(int i);
-//         std::string check_num(char c, int index);
-//         // void    execute(Command &cmd, Client &user);
-//         std::string    checkExnick(std::string nick);
-// };
 
 
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <poll.h>
-#include <vector>
-#include <list>
 
 
 

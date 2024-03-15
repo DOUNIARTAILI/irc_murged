@@ -2,16 +2,6 @@
 #include"Channel.hpp"
 #include"server.hpp"
 
-// void handler(int sig){
-//     if (sig == SIGINT)
-//         quit(this->channels,cmd, *it, this->clients_list, server);
-// }
-
-// void signalHandler(int sig){
-//     if (sig == SIGINT || sig == SIGTERM)
-//         std::cout << "maghayti7ch" << std::endl;
-// }
-
 int main(int ac, char **av)
 {
     try
