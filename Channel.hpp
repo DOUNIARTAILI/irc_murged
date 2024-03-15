@@ -13,6 +13,8 @@ class Channel
 {
     public:
     time_t topic_time;
+    Channel(const std::string &name);
+    Channel& operator=(const Channel& other);
     time_t creation_time;
     std::string name;
     std::string pwd;
@@ -25,8 +27,6 @@ class Channel
     size_t  max_users;
     Channel();
     ~Channel();
-    Channel(const std::string &name);
-    Channel& operator=(const Channel& other);
 
     std::vector<Clientx *> user_list;
     std::vector<Clientx *> op_list;
@@ -44,7 +44,7 @@ class Channel
     bool is_operator(std::string const &user);
     bool is_invite(std::string const &user);
     //----------
-    bool operator==(const Channel& other);  //overload == operator for iterator comparison
+    bool operator==(const Channel& other);
     void listalloperators(); 
     void listallusers();
     void listallchannels();

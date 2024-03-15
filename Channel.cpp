@@ -26,8 +26,6 @@ Channel& Channel::operator=(const Channel& other)
     topic = other.topic;
     mode = other.mode;
     user_list = other.user_list;
-    // operator_list = other.operator_list;
-    // invite_list = other.invite_list;
     return *this;
 }
 

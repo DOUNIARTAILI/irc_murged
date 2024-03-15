@@ -21,11 +21,11 @@ std::string my_hostname();
 #define RPL_INVITING(client, nick, channel)  Hostname + " 341 " + (client) + " " + (nick) + " " + (channel) + "\r\n"
 #define RPL_TOPICWHOTIME(client, channel, nick, setat) Hostname + " 333 " + (client) + " " + (channel) + " " + (nick) + " " + (setat) + "\r\n"
 #define RPL_NOTOPIC(client, channel)  Hostname + " 331 " + (client) + " " + (channel) + " :No topic is set\r\n"
-#define RPL_ISUPPORT(client, values)  Hostname + " 005 " + (client) + " " + (values) + " :are supported by this server\r\n"
 #define RPL_WELCOME(client) Hostname +  " 001 " + (client) + " :Welcome to the IRC Network, " + (client) + "\r\n"
 #define RPL_YOURHOST(client) Hostname + " 002 " + (client) + " :Your host is " + (Hostname) + "\r\n"
 #define RPL_CREATED(client) Hostname + " 003 " + (client) + " :This server was created Wed, 28 feb 2024 22:56:48 UTC" + "\r\n"
 #define RPL_MYINFO(client) Hostname + " 004 " + "irc" + "Version 0.0.01" + " it" + " klo" + "\r\n"
+#define RPL_ISUPPORT(client)  Hostname + " 005 " + (client) + " " + "MODES=5" + " :are supported by this server\r\n"
 //errors 
 #define ERR_ALREADYREGISTERED(client) Hostname + " 462 " +  (client) + " " + " :You may not reregister\r\n"
 #define ERR_NOTREGISTERED(client) Hostname + " 451 " +  (client) + " " + " :You have not registered\r\n"

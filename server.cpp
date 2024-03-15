@@ -469,6 +469,7 @@ void Server::Register(Clientx &user)
     std::string rp2 = RPL_YOURHOST(user.nickname);
     std::string rp3 = RPL_CREATED(user.nickname);
     std::string rp4 = RPL_MYINFO(user.client);
+    std::string rp5 = RPL_ISUPPORT(user.nickname);
     if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
     {
         perror("send");
@@ -482,6 +483,10 @@ void Server::Register(Clientx &user)
         perror("send");
     }
     if (send(user.c_fd, rp4.c_str(), rp4.length(), 0) == -1)
+    {
+        perror("send");
+    }
+    if (send(user.c_fd, rp5.c_str(), rp5.length(), 0) == -1)
     {
         perror("send");
     }
