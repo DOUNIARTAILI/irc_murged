@@ -388,7 +388,8 @@ int Server::get_listener_socket()
     freeaddrinfo(ai); // All done with this
 
     // Listen
-    if (listen(listener, 10) == -1) {
+    if (listen(listener, 10) == -1)
+    {
         return -1;
     }
 
