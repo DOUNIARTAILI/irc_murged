@@ -10,10 +10,24 @@ pass test
 nick noure
 user on 0 * huif
 
-pass test
+pass pass
 nick noure
 user on 0 * huif
+
+
+
 
 pass test
 nick noure
 user on 0 * huif
+
+pass test\\nnick mour\\nuser on 0 * klsfl\\n
+
+
+join #ch5
+part #ch5
+join #ch5
+
+
+
+join #ch2

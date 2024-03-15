@@ -496,28 +496,53 @@ std::vector<std::string> Server::splitt(const std::string &str, char del)
 
 void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients, Server &server);
 
+std::vector<std::string> Server::splitingCmd(const std::string &str, char del) {
+    std::vector<std::string> v;
+    size_t start = 0;
+    size_t pos = 0;
+    std::cout << "del" << int(del) << "string :" << str << std::endl;
+    while ((pos = str.find(del, start)) != std::string::npos) {
+        std::cout << "pos \n = " << pos << std::endl;
+        std::cout << "dkhal" << std::endl;
+        std::string arg = str.substr(start, pos - start);
+        if (!arg.empty())
+            v.push_back(arg);
+        start = pos + 1; // Move past the delimiter
+    }
+
+    // Handle the last substring (no delimiter after it)
+    if (start < str.size()) { // Ensure there is still content to extract
+        std::string  lastArg = str.substr(start);
+        std::cout << "zabzobiya:" << lastArg << start << str.size() << std::endl;
+        if (!lastArg.empty())
+            v.push_back(lastArg);
+    }
+    std::cout << "size of the vector in the split :" << v.size() << std::endl;
+
+    return v;
+}
 
 void Server::handleClientDataMsg(int fd)
 {
+
+    const int buffer_len = 1024;
+    char buf[buffer_len];
+    // regular client
+    int nbytes = recv(fd, buf, buffer_len, 0);
     Server server;
-    char buf[512];    // Buffer for client data
-    memset(buf, 0, 512);
-    size_t nbytes = recv(fd, buf, 512, 0);
-    buf[nbytes] = '\0';
+    // char buf[512];    // Buffer for client data
+    //memset(buf, 0, 512);
+    // size_t nbytes = recv(fd, buf, sizeof buf, 0);
+    std::cout << "buffer => |" << buf  << "|" << std::endl;
     std::cout << "nbytes " << nbytes << std::endl;
-    // Clientx user;
-    
-    // guest.c_fd = pfds[index].fd;
-    // guest.cmd += buf;
+
     std::list<Clientx>::iterator it = getUserfromClientlist(fd);
-    if (it != this->clients_list.end())
-    {
-        it->cmd += buf;
-        it->c_fd = fd;
-    }
-    // this->clientsList[index].cmd += buf;
-    // this->clientsList[index].c_fd = fd;
-    
+    // if (it != this->clients_list.end())
+    // {
+    //     it->cmd = buf;
+    //     it->c_fd = fd;
+    // }
+    //std::cout << "my it->cmd  |" << it->cmd << "|"<< std::endl;
     for(size_t x = 0; x < channels.size(); x++)
     {
         if (channels[x].user_list.size() == 0)
@@ -529,66 +554,54 @@ void Server::handleClientDataMsg(int fd)
     if (nbytes <= 0)
     {
         int sender_fd = fd;
-
         // Got error or connection closed by client
         if (nbytes == 0) {
-            // Command obj;
-            // Connection closed
-            // clientsList.erase(clientsList.begin() + index);
-            // this->clients_list.erase(it);
-            // Command cmd;
-            // Server server;
             puts("blasst signals");
             quit(this->channels,cmd, *it, this->clients_list, server);
             printf("pollserver: socket %d hung up\n", sender_fd);
         } else {
+            puts("jiht perror recv");
             perror("recv");
         }
-
         close(sender_fd); // Bye!
-
         del_from_pfds(sender_fd);
     }
     else
     {
+        buf[nbytes] = 0;
 
-    puts("1");
-        // Process received data
-        // buf[nbytes] = '\0';  // Ensure null-termination
-        // Command cmd;
-        // Server server;
-        // cmd.getcommand(this->clientsList[index].cmd, this->channels, cmd, this->clientsList[index], this->clientsList);
-        if (it->cmd.find("\n") != std::string::npos)
+        std::string message(buf);
+        size_t pos = message.find_last_of("\n");
+        if (pos != std::string::npos)
         {
-            if (it->connected == true){
-                puts("no");
-                cmd.getcommand(it->cmd, this->channels, cmd, *it, this->clients_list, server); //should change it to list
-            }
-            else
+            it->cmd = message.substr(0, pos);
+            std::vector<std::string> v;
+            v = splitingCmd(it->cmd, '\n');
+            std::cout << "v size " << v.size() << std::endl;
+            for(size_t i = 0; i < v.size(); i++)
             {
-                // this->auth(index);
-                // try {
-                    puts("yup");
-                    // std::cout << "fd =>" << pfds[index].fd << std::endl;
-                    // std::cout << "i dyal clientsList  " << index << std::endl; 
-                    this->Authenticate(*it);
-                    // this->Authenticate(pfds[index].fd, index);
-                // }
-                // catch (const std::exception &e)
+                std::cout << "cmd split |" << v[i] << "|" << std::endl;
+            }
+            for(size_t i = 0; i < v.size(); i++)
+            {
+                it->cmd = v[i];
+                // if (it->cmd.find("\n") != std::string::npos)
                 // {
-                //     std::string msgerr = e.what();
-                //     if (msgerr.length() == 0)
-                //         return;
-                //     if (send(clientsList[index].c_fd, msgerr.c_str(), msgerr.length(), 0) == -1)
-                //     {
-                //         perror("send");
-                //     }
-                //     fdHandler(index);
+                    std::cout << "cmd :" << v[i] << std::endl;
+                    if (it->connected == true)
+                        cmd.getcommand(it->cmd, this->channels, cmd, *it, this->clients_list, server); //should change it to list
+                    else
+                        this->Authenticate(*it);
+                    // it->cmd = "";
                 // }
             }
-            std::cout<<"buffer ==> "<< it->cmd <<std::endl;
-            it->cmd = "";
+            it->cmd = message.substr(pos + 1);
         }
+        else
+        {
+            it->cmd += message;
+        }
+        // it->cmd = "";
     }
 }
 

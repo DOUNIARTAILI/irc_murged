@@ -232,4 +232,5 @@ public:
     void fdHandler(int i);
     std::list<Clientx>::iterator getUserfromClientlist(int fd);
     void resetGuest();
+    std::vector<std::string> splitingCmd(const std::string &str, char del);
 };

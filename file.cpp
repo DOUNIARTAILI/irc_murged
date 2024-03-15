@@ -315,12 +315,14 @@ void part(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         {
             if (it->is_user(client.nickname))
             {
+                puts("partt side");
                 std::string partmsg = PART_MSG(client.nickname, client.username, client.ip, cmd.channel[i].first, cmd.comment);
                 broadcast(it->user_list, partmsg);
                 it->remove_operator(client.nickname);
                 it->remove_user(client.nickname);
                 if (it->user_list.size() == 0)
                     chan.erase(it);
+                // break;
             }
             else
             {
@@ -336,6 +338,7 @@ void part(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         {
             std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[i].first);
             // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
+            std::cout << "<<<<<<"<< cmd.channel[i].first << "  " << i << "   " << client.nickname << std::endl;
             if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
             {
                 perror("send");
