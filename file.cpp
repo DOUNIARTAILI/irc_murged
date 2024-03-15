@@ -992,14 +992,14 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 if (cmd.mode_args.size() > x)
                                 {
                                     int max_users = atoi(cmd.mode_args[x].c_str());
-                                    // bool b = false;
-                                    if (max_users > 0)
+                                    bool b = false;
+                                    if (max_users > 0 && b == false)
                                     {
                                         it->mode += 'l';
                                         it->max_users = atoi(cmd.mode_args[x].c_str());
                                         std::cout << "argument dial l = " << cmd.mode_args[x] << std::endl;
                                         it->mode_param += cmd.mode_args[x] + ' ';
-                                        // b = true;
+                                        b = true;
                                     }
                                 }
                                 else
