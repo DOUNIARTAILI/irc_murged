@@ -130,7 +130,7 @@ int Server::get_listener_socket()
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     if ((rv = getaddrinfo(NULL, this->port.c_str(), &hints, &ai)) != 0) {
-        fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
+        std::cerr << "selectserver: " << gai_strerror(rv) << std::endl;
         exit(1);
     }
     
@@ -213,12 +213,9 @@ void Server::handleNewConnection(void)
         perror("accept");
     } else {
         add_to_pfds(newfdclient);
-        printf("pollserver: new connection from %s on "
-               "socket %d\n",
-               inet_ntop(remoteaddr.ss_family, 
-                         get_in_addr((struct sockaddr *)&remoteaddr),
-                         remoteIP, INET_ADDRSTRLEN),
-               newfdclient);
+        std::cout << "pollserver: new connection from " << 
+        inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr *)&remoteaddr), remoteIP, INET_ADDRSTRLEN) << 
+        " on socket " << newfdclient << std::endl;
                 
         addUser(newfdclient, inet_ntop(remoteaddr.ss_family, 
                          get_in_addr((struct sockaddr *)&remoteaddr),
@@ -248,10 +245,7 @@ std::vector<std::string> Server::splitingCmd(const std::string &str, char del) {
     std::vector<std::string> v;
     size_t start = 0;
     size_t pos = 0;
-    std::cout << "del" << int(del) << "string :" << str << std::endl;
     while ((pos = str.find(del, start)) != std::string::npos) {
-        std::cout << "pos \n = " << pos << std::endl;
-        std::cout << "dkhal" << std::endl;
         std::string arg = str.substr(start, pos - start);
         if (!arg.empty())
             v.push_back(arg);
@@ -261,12 +255,9 @@ std::vector<std::string> Server::splitingCmd(const std::string &str, char del) {
     // Handle the last substring (no delimiter after it)
     if (start < str.size()) { // Ensure there is still content to extract
         std::string  lastArg = str.substr(start);
-        std::cout << "zabzobiya:" << lastArg << start << str.size() << std::endl;
         if (!lastArg.empty())
             v.push_back(lastArg);
     }
-    std::cout << "size of the vector in the split :" << v.size() << std::endl;
-
     return v;
 }
 
@@ -293,7 +284,7 @@ void Server::handleClientDataMsg(int fd)
         // Got error or connection closed by client
         if (nbytes == 0) {
             quit(this->channels,cmd, *it, this->clients_list, server);
-            printf("pollserver: socket %d hung up\n", sender_fd);
+            std::cout << "pollserver: socket " << sender_fd << " hung up" << std::endl;
         } else {
             perror("recv");
         }
@@ -333,7 +324,7 @@ void Server::runServer()
     // Set up and get a listening socket
     this->listenerSock = get_listener_socket();
     if (this->listenerSock == -1) {
-        fprintf(stderr, "error getting listening socket\n");
+        std::cerr << "error getting listening socket" << std::endl;
         exit(1);
     }
     // Add the listener to set
@@ -422,7 +413,6 @@ void Server::validateNick(std::string &str, Clientx &user){
             }
             else{
                 if (!clients_list.empty()) {
-                    std::cout << "splited[0]  " << splited[0] << std::endl; 
                     user.nickname = splited[0];
                 }
             }
@@ -495,8 +485,6 @@ void Server::Register(Clientx &user)
     {
         perror("send");
     }
-    std::cout << "after replay" << std::endl;
-    std::cout << "nick "<< user.nickname << " user " << user.username << std::endl;
     user.connected = true;
 }
 
@@ -518,9 +506,6 @@ void Server::Authenticate(Clientx &user)
     {
     std::vector<std::string> commandparsed = parcing(user);
     std::string firstarg = toupper(commandparsed[0]);
-    std::cout << "commandparsed[0] " << commandparsed[0] << std::endl;
-    std::cout << "commandparsed[1] " << commandparsed[1] << std::endl;
-    std::cout << "firstarg " << firstarg << std::endl;
     std::string cmd[3]= {"PASS","NICK","USER"};
     int idx = 0;
     while(idx < 3)
@@ -532,10 +517,8 @@ void Server::Authenticate(Clientx &user)
     switch(idx)
     {
         case 0:
-            std::cout << "password = |" << commandparsed[1] << "|" << std::endl;
             if (!commandparsed[1].empty()){
                 validatePass(commandparsed[1], user);
-                std::cout << "status dyal pass mora madkhal pass correcte " << user.pass << std::endl;
             }
             else {
                 std::string rp = ERR_NEEDMOREPARAMS(user.ip, "PASS");
@@ -546,9 +529,7 @@ void Server::Authenticate(Clientx &user)
             }
             break;
         case 1:
-            std::cout << "status pass correcte nickkk " << user.pass << std::endl;
             if (user.pass == true){
-                std::cout << "commandparsed[1]|" << commandparsed[1] << "|"<< std::endl; 
                 if (!commandparsed[1].empty()){
                     validateNick(commandparsed[1], user);
                 }
@@ -561,7 +542,6 @@ void Server::Authenticate(Clientx &user)
                 }
             }
             else{
-                std::cout << "status dyal pass f jiht nick " << user.pass << std::endl;
                 std::string rp = ERR_NOPASSGIVEN(user.ip);
                 if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
                 {
