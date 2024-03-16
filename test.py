@@ -2,7 +2,7 @@ import socket
 import threading
 
 # Informations de connexion au serveur IRC
-server_ip = "localhost"
+server_ip = "e3r1p2.1337.ma"
 # server_ip = "localhost"
 server_port = 6666
 server_password = "pass"
@@ -24,7 +24,7 @@ def connect_irc(nick):
 
     irc_socket.send("USER {} 0 * Bot\r\n".format(nick).encode())
     irc_socket.send("NICK {}\r\n".format(nick).encode())
-    irc_socket.send("JOIN #c\r\n".format(nick).encode())
+    irc_socket.send("JOIN #c1\r\n".format(nick).encode())
     irc_socket.send("JOIN #c2\r\n".format(nick).encode())
     irc_socket.send("JOIN #c3\r\n".format(nick).encode())
     irc_socket.send("JOIN #c4\r\n".format(nick).encode())

@@ -267,7 +267,7 @@ void Server::handleClientDataMsg(int fd)
     const int buffer_len = 1024;
     char buf[buffer_len];
     int nbytes = recv(fd, buf, buffer_len, 0);
-    std::cout << "buffer |" << buf  << "|" << std::endl;
+    // std::cout << "buffer |" << buf  << "|" << std::endl;
     Server server;
 
     std::list<Clientx>::iterator it = getUserfromClientlist(fd);
@@ -381,6 +381,8 @@ void Server::runServer()
 }
 
 void Server::validatePass(std::string &str, Clientx &user){
+    // std::cout << "pass of server " << this->PASS << std::endl;
+    // std::cout << "pass of client " << str<< std::endl;
     if (user.connected == true){
         std::string rp = ERR_ALREADYREGISTERED(Server::hostname);
         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
@@ -388,19 +390,31 @@ void Server::validatePass(std::string &str, Clientx &user){
             perror("send");
         }
     }
-    std::vector<std::string> splited = this->splitt(str, ' ');
-    if (splited.size() == 1){
-        if (splited[0] == this->PASS){
-            user.pass = true;
-        }
-        else{
-            std::string rp = ERR_PASSWDMISTACH(user.ip);
-            if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
-            {
-                perror("send");
-            }
+    if (str == this->PASS){
+        std::cout << "pass of server " << this->PASS << std::endl;
+        user.pass = true;
+    }
+    else{
+        std::string rp = ERR_PASSWDMISTACH(user.ip);
+        if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+        {
+            perror("send");
         }
     }
+    // std::vector<std::string> splited = this->splitt(str, ' ');
+    // if (splited.size() == 1){
+    //     if (splited[0] == this->PASS){
+    //         std::cout << "pass of server " << this->PASS << std::endl;
+    //         user.pass = true;
+    //     }
+    //     else{
+    //         std::string rp = ERR_PASSWDMISTACH(user.ip);
+    //         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+    //         {
+    //             perror("send");
+    //         }
+    //     }
+    // }
 }
 
 int_fast16_t checkCHANTYPES(std::string &str){

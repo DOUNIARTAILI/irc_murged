@@ -530,7 +530,7 @@ void quit(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
         clients.erase(itl);
     }
     std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
-    // broadcast2(clients, quitmsg);
+    broadcast2(clients, quitmsg);
     close(client.c_fd);
     if (!clients.empty())
     {
@@ -556,6 +556,67 @@ void quit(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
 //      // server.clients.erase(std::find(server.clients.begin(), server.clients.end(), client));
 //  }
 
+std::string trim_(const std::string &str)
+{
+    size_t leftPos = str.find_first_not_of(" \t\n\r\v\f");
+    size_t rightPos = str.find_last_not_of(" \t\n\r\v\f");
+
+    if (leftPos == std::string::npos || rightPos == std::string::npos)
+        return std::string("");  // Empty string if all characters are whitespace
+
+    return str.substr(leftPos, rightPos - leftPos + 1);
+}
+
+std::vector<std::string> splitt_(const std::string &str, char del)
+{
+    std::istringstream iss(str);
+    std::string arg;
+    std::vector<std::string> v;
+
+    while (std::getline(iss, arg, del))
+    {
+        if (del == ' ')
+            arg = trim_(arg);
+        if (!arg.empty())
+            v.push_back(arg);
+    }
+    return v;
+}
+
+int_fast16_t checkCHANTYPES_(std::string &str){
+    if (str[0] == '#' || str[0] == '~' || str[0] == '+' || str[0] == '%' || str[0] == '$' || str[0] == '&' || str[0] == ':' || isdigit(str[0]))
+        return 0;
+    size_t i = 0;
+    while (i < str.size()){
+        if (str[i] == ',' || str[i] == '*' || str[i] == '?' || str[i] == '!' || str[i] == '@' || str[i] == '.')
+            return 0;
+        i++;
+    }
+    return 1;
+}
+
+void validate_Nick(std::string &str, Clientx &user){
+    std::vector<std::string> splited = splitt_(str, ' ');
+    if (!checkCHANTYPES_(str)){
+        std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
+        if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+        {
+            perror("send");
+        }
+    }else{
+        if (splited[0].size() > 15){
+            std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
+            if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
+            {
+                perror("send");
+            }
+        }
+        else{
+                user.nickname = splited[0];
+        }
+    }
+}
+
 void nick(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients)
 {
     // size_t i = 0;
@@ -573,7 +634,8 @@ void nick(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
             std::string nickmsg = NICK_MSG(client.nickname, client.username, client.ip, cmd.nickname);
             broadcast2(clients, nickmsg);
             // write(client.c_fd, nickmsg.c_str(), nickmsg.size());
-            client.nickname = cmd.nickname;
+            validate_Nick(cmd.nickname, client);
+            // client.nickname = cmd.nickname;
         }
         else
         {
