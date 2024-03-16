@@ -267,9 +267,17 @@ void Server::handleClientDataMsg(int fd)
     const int buffer_len = 1024;
     char buf[buffer_len];
     int nbytes = recv(fd, buf, buffer_len, 0);
+    std::cout << "buffer |" << buf  << "|" << std::endl;
     Server server;
 
     std::list<Clientx>::iterator it = getUserfromClientlist(fd);
+    // if (it != this->clients_list.end())
+    // {
+    //     puts("hh");
+    //     it->cmd += buf;
+    //     it->c_fd = fd;
+    // }
+
     for(size_t x = 0; x < channels.size(); x++)
     {
         if (channels[x].user_list.size() == 0)
@@ -283,8 +291,20 @@ void Server::handleClientDataMsg(int fd)
         int sender_fd = fd;
         // Got error or connection closed by client
         if (nbytes == 0) {
-            quit(this->channels,cmd, *it, this->clients_list, server);
-            std::cout << "pollserver: socket " << sender_fd << " hung up" << std::endl;
+       while(it != clients_list.end())
+        {
+            if (it->c_fd == sender_fd)
+            {
+                std::cout<<"before killing clients !"<<std::endl;
+                // printpfds(pfds);
+                quit(this->channels,cmd, *it, this->clients_list, server);
+                std::cout << "pollserver: socket " << sender_fd << " hung up" << std::endl;
+                break;
+            }
+            ++it;
+        }
+            // quit(this->channels,cmd, *it, this->clients_list, server);
+            // std::cout << "pollserver: socket " << sender_fd << " hung up" << std::endl;
         } else {
             perror("recv");
         }
@@ -299,7 +319,7 @@ void Server::handleClientDataMsg(int fd)
         size_t pos = message.find_last_of("\n");
         if (pos != std::string::npos)
         {
-            it->cmd = message.substr(0, pos);
+            it->cmd += message.substr(0, pos);
             std::vector<std::string> v;
             v = splitingCmd(it->cmd, '\n');
             for(size_t i = 0; i < v.size(); i++)
@@ -331,6 +351,7 @@ void Server::runServer()
     add_to_pfds(this->listenerSock);// Report ready to read on incoming connection
     // Main loop
     for(;;) {
+        signal(SIGPIPE, SIG_IGN);
         int poll_count = poll(pfds.data(), pfds.size(), 0); // kant -1
 
         if (poll_count == -1) {

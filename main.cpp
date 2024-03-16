@@ -23,9 +23,9 @@ int main(int ac, char **av)
             return 2;
         }
         // signal(SIGINT, &handler);
-        // signal(SIGTERM, SIG_IGN);
-        // signal(SIGKILL, SIG_IGN);
-        // signal(SIGPIPE, SIG_IGN);
+        //signal(SIGTERM, SIG_IGN);
+        //signal(SIGKILL, SIG_IGN);
+        
 
         Server server(av[1], av[2]);
         server.runServer();

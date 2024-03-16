@@ -529,13 +529,13 @@ void quit(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
     {
         clients.erase(itl);
     }
+    std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
+    // broadcast2(clients, quitmsg);
     close(client.c_fd);
     if (!clients.empty())
     {
         server.del_from_pfds(client.c_fd);
     }
-    std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
-    broadcast2(clients, quitmsg);
 }
 
 // bot

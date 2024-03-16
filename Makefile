@@ -4,7 +4,7 @@ SRC		= Channel.cpp Commands.cpp file.cpp main.cpp server.cpp
 
 CC 		= c++
 
-FLAGS	= -Wall -Wextra -Werror -std=c++98 -lcurl
+FLAGS	= -Wall -Wextra -Werror -std=c++98 -lcurl #-fsanitize=address -g 
 
 OBJS 	= $(SRC:.c=.o)
 
