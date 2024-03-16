@@ -277,6 +277,7 @@ void Server::handleClientDataMsg(int fd)
     //     it->cmd += buf;
     //     it->c_fd = fd;
     // }
+    
 
     for(size_t x = 0; x < channels.size(); x++)
     {
