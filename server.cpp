@@ -267,7 +267,7 @@ void Server::handleClientDataMsg(int fd)
     const int buffer_len = 1024;
     char buf[buffer_len];
     int nbytes = recv(fd, buf, buffer_len, 0);
-    // std::cout << "buffer |" << buf  << "|" << std::endl;
+    //std::cout << "buffer |" << buf  << "|" << std::endl;
     Server server;
 
     std::list<Clientx>::iterator it = getUserfromClientlist(fd);
@@ -277,7 +277,6 @@ void Server::handleClientDataMsg(int fd)
     //     it->cmd += buf;
     //     it->c_fd = fd;
     // }
-    
 
     for(size_t x = 0; x < channels.size(); x++)
     {
@@ -294,7 +293,7 @@ void Server::handleClientDataMsg(int fd)
         if (nbytes == 0) {
        while(it != clients_list.end())
         {
-            if (it->c_fd == sender_fd)
+            if (it->c_fd == sender_fd && it->connected == true)
             {
                 std::cout<<"before killing clients !"<<std::endl;
                 // printpfds(pfds);
