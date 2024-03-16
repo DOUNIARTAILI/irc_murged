@@ -6,7 +6,7 @@ DELAY = 2
 
 async def connect_socket(i):
     try:
-        reader, writer = await asyncio.open_connection("e3r1p4.1337.ma", 6666)
+        reader, writer = await asyncio.open_connection("e3r1p2.1337.ma", 6666)
         print("Connected!")
         writer.write("PASS pass\r\n".encode())
         await asyncio.sleep(DELAY)

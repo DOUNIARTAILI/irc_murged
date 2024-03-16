@@ -76,7 +76,7 @@ public:
 
 
 
-
+class Command;
 
 class Data{
 
@@ -137,4 +137,6 @@ public:
     std::list<Clientx>::iterator getUserfromClientlist(int fd);
     void resetGuest();
     std::vector<std::string> splitingCmd(const std::string &str, char del);
+    std::string userNicknameFromFd(int fd);
+    void remove_from_channels(Server &server, int fd, Command &cmd);
 };

@@ -70,6 +70,17 @@ int  Server::nickalreadyexist(std::string nick)
     return 1;
 }
 
+std::string Server::userNicknameFromFd(int fd)
+{
+    std::list<Clientx>::iterator it;
+    for(it =  clients_list.begin(); it != clients_list.end(); it++)
+    {
+        if((*it).c_fd == fd)
+            return (*it).nickname;
+    }
+    return "";
+}
+
 std::vector<pollfd> Server::pfds = std::vector<pollfd>();
 std::string Server::hostname = "";
 std::string Server::PASS = "";
@@ -196,6 +207,12 @@ void Server::del_from_pfds(int fdd)
     }
     if (it == pfds.end())
         return;
+
+    size_t i = 0;
+    while (i < pfds.size()){
+        std::cout << "pfd after deletion " << pfds[i].fd << std::endl;
+        i++;
+    }
 }
 
 void Server::handleNewConnection(void)
@@ -261,6 +278,49 @@ std::vector<std::string> Server::splitingCmd(const std::string &str, char del) {
     return v;
 }
 
+void Server::remove_from_channels(Server &server, int fd, Command &cmd)
+{
+
+    (void)server;
+    std::vector<Channel>::iterator iter = channels.begin();
+
+    if(iter == channels.end())
+        std::cout << "channels khawin \n";
+
+    puts("pfff");
+    for(; iter != channels.end();iter++)
+    {
+        puts("dd");
+        std::string nickname = userNicknameFromFd(fd);
+        // if(nickname.empty())
+        //     continue;
+        if((*iter).is_user(nickname))
+        {
+            (*iter).remove_user(nickname);
+            std::cout << nickname << " removed from " << (*iter).name << std::endl;
+            std::list<Clientx>::iterator  client_it = getUserfromClientlist(fd);
+            for(std::vector<Clientx *>::iterator it = (*iter).user_list.begin(); it != (*iter).user_list.end(); it++)
+            {
+                std::string msg = QUIT_MSG(nickname, (*client_it).username, (*client_it).ip, cmd.comment);
+                if ((*it)->c_fd != -1)
+                {
+                    if (send((*it)->c_fd, msg.c_str(), msg.size(), 0) == -1)
+                    {
+                        // server.del_from_pfds(i->c_fd);
+                        // for()
+                        perror("send 1");
+                    }
+                }
+            }
+            for(std::list<Clientx>::iterator i = clients_list.begin(); i != clients_list.end(); i++)
+            {
+                if((*i).c_fd == fd)
+                    clients_list.erase(i);
+            }
+        }
+    }
+}
+
 void Server::handleClientDataMsg(int fd)
 {
 
@@ -268,7 +328,7 @@ void Server::handleClientDataMsg(int fd)
     char buf[buffer_len];
     int nbytes = recv(fd, buf, buffer_len, 0);
     //std::cout << "buffer |" << buf  << "|" << std::endl;
-    Server server;
+    Server server = *this;
 
     std::list<Clientx>::iterator it = getUserfromClientlist(fd);
     // if (it != this->clients_list.end())
@@ -288,17 +348,16 @@ void Server::handleClientDataMsg(int fd)
 
     if (nbytes <= 0)
     {
-        int sender_fd = fd;
         // Got error or connection closed by client
         if (nbytes == 0) {
-       while(it != clients_list.end())
+        while(it != clients_list.end())
         {
-            if (it->c_fd == sender_fd && it->connected == true)
+            if (it->c_fd == fd)
             {
                 std::cout<<"before killing clients !"<<std::endl;
                 // printpfds(pfds);
-                quit(this->channels,cmd, *it, this->clients_list, server);
-                std::cout << "pollserver: socket " << sender_fd << " hung up" << std::endl;
+                //quit(this->channels,cmd, *it, this->clients_list, server);
+                std::cout << "pollserver: socket " << fd << " hung up" << std::endl;
                 break;
             }
             ++it;
@@ -308,8 +367,9 @@ void Server::handleClientDataMsg(int fd)
         } else {
             perror("recv");
         }
-        close(sender_fd);
-        del_from_pfds(sender_fd);
+        remove_from_channels(server, fd, cmd);
+        close(fd);
+        del_from_pfds(fd);
     }
     else
     {
@@ -338,6 +398,7 @@ void Server::handleClientDataMsg(int fd)
         }
     }
 }
+
 
 void Server::runServer()
 {
@@ -648,3 +709,4 @@ void Server::Authenticate(Clientx &user)
 
     }
 }
+

@@ -46,6 +46,54 @@ void broadcast2(std::list<Clientx> &clients, std::string msg)
     }
 }
 
+// void remove_from_channels(std::vector<Channel> &chan, int fd_target)
+// {
+//     (void)fd_target;
+//     std::vector<Channel>::iterator iter = chan.begin();
+
+//     while (iter != chan.end())
+//     {
+//         std::cout << iter->name << std::endl;
+//         for(std::vector<Clientx *>::iterator i = iter->user_list.begin(); i != iter->user_list.end(); i++)
+//         {
+//             if(i >= iter->user_list.end())
+//                 break;
+//             std::cout << (*i)->nickname << "|" << (*i)->c_fd << std::endl;
+//             // if((*i)->c_fd == fd_target)
+//             // {
+//             //     //remove from channel
+//             //     puts("1");
+//             //     iter->user_list.erase(i);
+//             //     // puts("2");
+//             //     // iter->op_list.erase(i);
+//             // }
+//         }
+//         iter++;
+//         break;
+//     }
+//     puts("khrejjjj");
+// }
+
+void broadcast3(std::list<Clientx> &clients, std::string msg, Server &server,std::vector<Channel> &chan)
+{
+
+    (void)chan;
+    std::list<Clientx>::iterator i = clients.begin();
+    while (i != clients.end())
+    {
+    std::cout << "size of reset fds = " << server.getPfds().size() << " | " << i->c_fd << std::endl;
+        // write(i->c_fd, msg.c_str(), msg.size());
+        if (send(i->c_fd, msg.c_str(), msg.size(), 0) == -1)
+        {
+            // server.del_from_pfds(i->c_fd);
+            // for()
+            perror("send 1");
+        }
+        //remove_from_channels(chan, i->c_fd);
+        ++i;
+    }
+}
+
 // void broadcast(std::vector<Clientx *> &clients, std::string msg)
 // {
 //     size_t i = 0;
@@ -530,7 +578,7 @@ void quit(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
         clients.erase(itl);
     }
     std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
-    broadcast2(clients, quitmsg);
+    broadcast3(clients, quitmsg, server,chan);
     close(client.c_fd);
     if (!clients.empty())
     {

@@ -2,10 +2,10 @@ import socket
 import threading
 
 # Informations de connexion au serveur IRC
-server_ip = "e3r1p2.1337.ma"
+server_ip = "e3r4p14.1337.ma"
 # server_ip = "localhost"
 server_port = 6666
-server_password = "pass"
+server_password = "test"
 # server_password = "zarda"
 
 # Liste de pseudos disponibles
