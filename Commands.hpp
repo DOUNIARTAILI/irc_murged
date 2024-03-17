@@ -59,7 +59,7 @@ std::string my_hostname();
 #define KICK_MSG(client, ipaddr, channel, kicked, reason) ":" + (client) + "!~" + (ipaddr) + " KICK " + (channel) + " " + kicked + " " + reason + "\r\n"
 #define MODE_MSG(client, username,ipaddr, channel,added_mode, target) ":" + (client) + "!~" + (username) +"@" + (ipaddr) + " MODE " + (channel) + " " +(added_mode) +  target + "\r\n"
 #define JOIN_SUCC(nickname, username, client_ip, channel) ":" + (nickname) + "!~" + (username) + "@" + (client_ip) + " JOIN " + (channel) + "\r\n"
-#define QUIT_MSG(nickname, username, ipaddr, reason) ":"+ (nickname) + "!~" + (username) + "@" + (ipaddr) + " QUIT :Client Quit" + (reason) + "\r\n"
+#define QUIT_MSG(nickname, username, ipaddr, reason) ":"+ (nickname) + "!~" + (username) + "@" + (ipaddr) + " QUIT :Client Quit " + (reason) + "\r\n"
 #define NOTICE_MSG(client, username, ipaddr, target, message) ":" + (client) + "!~" + (username) + "@" + (ipaddr) + " NOTICE " + (target) + " :" + (message) + "\r\n"
 #define PART_MSG(nickname, username, ipaddr, channel, reason) ":" + (nickname) + "!~" + (username) + "@" + ipaddr + " PART " + (channel) + " " + (reason) + "\r\n"
 #define INVITE_MSG(client, username, ipaddr, target, channel) ":" + (client) + "!~" + (username) + "@" + (ipaddr) + " INVITE " + (target) + " " + (channel) + "\r\n"

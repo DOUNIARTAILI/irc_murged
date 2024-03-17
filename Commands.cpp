@@ -62,6 +62,7 @@ void Command::joincommand() // fill channel vector with channel name and key
 
 void Command::kickcommand() 
 {
+    try{
     if (command_arg.size() < 1)
     { 
         std::cerr<<"not enough arguments"<<std::endl;
@@ -86,6 +87,11 @@ void Command::kickcommand()
         else
             comment = command_arg[2];
     }
+    }
+    catch(std::exception &e)
+    {
+        std::cerr<<e.what()<<std::endl;
+    }
 }
 
 size_t iscommand(std::string &str)
@@ -105,7 +111,6 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
 {
     try
     {
-    // command JOIN | args #ch | cmd 
     mainstring = str;
     std::string command_args;
     std::istringstream iss(str);
@@ -180,6 +185,7 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         else if (command == "QUIT")
         {
             quitcommand();
+            std::cout<<"reason for quit "<<comment<<std::endl;
             quit(chan, cmd, client, clients, server);
         }
         else if (command == "PART")
@@ -253,6 +259,8 @@ void Command::privmsg()
 
 void Command::topiccommand()
 {
+    try
+    {
     if (command_arg.size() > 0)
         channel.push_back(std::make_pair(command_arg[0], ""));
     if (command_arg.size() > 1)
@@ -264,6 +272,11 @@ void Command::topiccommand()
         }
         else
             topic = command_arg[1];
+    }
+    }
+    catch(std::exception &e)
+    {
+        std::cerr<<e.what()<<std::endl;
     }
 }
 
@@ -315,7 +328,7 @@ void Command::partcommand()
         if (command_arg[1][0] == ':')
         {
             comment = mainstring.substr(mainstring.find(':'));
-            comment = comment.erase(comment.size() - 1);
+            comment = comment.erase(comment.size());
         }
         else
             comment = command_arg[1];
@@ -324,12 +337,12 @@ void Command::partcommand()
 
 void Command::quitcommand()
 {
-    if (command_arg.size() > 1)
+    if (command_arg.size() > 0)
     {
         if (command_arg[0][0] == ':')
         {
             comment = mainstring.substr(mainstring.find(':'));
-            comment = comment.erase(comment.size() - 1);
+            comment = comment.erase(comment.size());
         }
         else
             comment = command_arg[0];

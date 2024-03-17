@@ -280,7 +280,8 @@ void kick(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     size_t i = 0;
     // size_t x = 0;
     // size_t j = 0;
-    if (cmd.command_arg.size() > 0)
+    std::cout<<"kick command_arg.size() =="<<cmd.command_arg.size()<<std::endl;
+    if (cmd.command_arg.size() > 1)
     {
         std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[0].first));
         if (it != chan.end())
@@ -301,9 +302,9 @@ void kick(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                     }
                     else
                     {
-                        std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[0].first);
+                        std::string nosuchnick = ERR_NOSUCHNICK(client.nickname, cmd.users[i]);
                         // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
-                        if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
+                        if (send(client.c_fd, nosuchnick.c_str(), nosuchnick.size(), 0) == -1)
                         {
                             perror("send");
                         }
