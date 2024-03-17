@@ -996,10 +996,12 @@ std::string removeDuplicates(std::string &str)
 //     return res;
 // }
 
-std::string print_update(std::string const &oldstring, std::string const &newstring);
+std::string print_update(std::string const &oldstring, std::string &newstring, std::string cmd_arg);
 
 void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
 {
+    bool removeOp = 0;
+    bool flag_err = 0;
     if (cmd.command_arg.size() == 0)
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE");
@@ -1102,18 +1104,20 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 if (cmd.mode_args.size() > x)
                                 {
                                     int max_users = atoi(cmd.mode_args[x].c_str());
-                                    bool b = false;
-                                    if (max_users > 0 && b == false)
+                                    // bool b = false;
+                                    if (max_users > 0)
                                     {
+                                        puts("max_users la");
                                         it->mode += 'l';
                                         it->max_users = atoi(cmd.mode_args[x].c_str());
                                         std::cout << "argument dial l = " << cmd.mode_args[x] << std::endl;
                                         it->mode_param += cmd.mode_args[x] + ' ';
-                                        b = true;
+                                        std::cout << "it->mode_param  " << it->mode_param << std::endl;
                                     }
                                 }
                                 else
                                 {
+                                    flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +l");
                                     // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
@@ -1148,6 +1152,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     }
                                     else
                                     {
+                                        flag_err = 1;
                                         std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
                                         // write(client.c_fd, user_not_found.c_str(), user_not_found.size());
                                         if (send(client.c_fd, user_not_found.c_str(), user_not_found.size(), 0) == -1)
@@ -1158,6 +1163,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 }
                                 else
                                 {
+                                    flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +o");
                                     // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
@@ -1186,6 +1192,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
 
                                         it->mode_param += cmd.mode_args[x] + ' ';
                                         it->remove_operator(cmd.mode_args[x]);
+                                        removeOp = 1;
                                         // std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, "-o", it->mode_param);
                                         std::cout << "modearg[x] " << cmd.mode_args[x] << std::endl;
                                         std::cout << "client nickname ==>" << client.nickname << std::endl;
@@ -1200,6 +1207,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     }
                                     else
                                     {
+                                        flag_err = 1;
                                         std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
                                         // write(client.c_fd, user_not_found.c_str(), user_not_found.size());
                                         if (send(client.c_fd, user_not_found.c_str(), user_not_found.size(), 0) == -1)
@@ -1210,6 +1218,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 }
                                 else
                                 {
+                                    flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -o");
                                     // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
@@ -1235,6 +1244,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     }
                                     else
                                     {
+                                        flag_err = 1;
                                         std::string alreadyset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
                                         // write(client.c_fd, alreadyset.c_str(), alreadyset.size());
                                         if (send(client.c_fd, alreadyset.c_str(), alreadyset.size(), 0) == -1)
@@ -1245,6 +1255,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 }
                                 else
                                 {
+                                    flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +k");
                                     // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
@@ -1257,6 +1268,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                             {
                                 if (!it->k_flag)
                                 {
+                                    flag_err = 1;
                                     std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
                                     // write(client.c_fd, keynotset.c_str(), keynotset.size());
                                     if (send(client.c_fd, keynotset.c_str(), keynotset.size(), 0) == -1)
@@ -1288,6 +1300,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     }
                                     else
                                     {
+                                        flag_err = 1;
                                         std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
                                         // write(client.c_fd, keynotset.c_str(), keynotset.size());
                                         if (send(client.c_fd, keynotset.c_str(), keynotset.size(), 0) == -1)
@@ -1309,6 +1322,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 }
                                 else
                                 {
+                                    flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -k");
                                     // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
@@ -1321,6 +1335,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                         }
                         if (cmd.mode[i].second != 'i' && cmd.mode[i].second != 't' && cmd.mode[i].second != 'l' && cmd.mode[i].second != 'o' && cmd.mode[i].second != 'k')
                         {
+                            flag_err = 1;
                             std::string unknownmode = ERR_UNKNOWNMODE(client.nickname, cmd.mode[i].second);
                             // write(client.c_fd, unknownmode.c_str(), unknownmode.size());
                             if (send(client.c_fd, unknownmode.c_str(), unknownmode.size(), 0) == -1)
@@ -1334,26 +1349,66 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                 it->mode = removeDuplicates(it->mode);
                 // std::string res = modeupdate(it->mode, tmp , cmd.mode_args);
                 // std::cout<<res<<std::endl;
-                std::cout << "new ==>" << it->mode << std::endl;
-                std::cout << "old ==>" << it->old_mode << std::endl;
-                std::cout << "update ===> " << print_update(it->old_mode, it->mode) << std::endl;
-                std::string newmode = print_update(it->old_mode, it->mode) + ' ';
+                std::cout << "new ==>" << it->mode << "|" <<std::endl;
+                std::cout << "old ==>" << it->old_mode << "|" <<std::endl;
+                std::cout << "update ===> " << print_update(it->old_mode, it->mode,cmd.command_arg[1]) << "||"<<  std::endl;
+                std::string newmode = print_update(it->old_mode, it->mode, cmd.command_arg[1]) + ' ';
+                for(size_t i = 0; i < cmd.mode.size(); i++)
+                    std::cout << "param " <<cmd.mode[i].second << std::endl;
                 // if (!newmode.find("oitlk"))
                 // {
                 //     std::string mode = RPL_CHANNELMODEIS(client.nickname, cmd.channel[0].first, newmode);
                 //     broadcast(it->user_list, mode);
                 // }
-                if (newmode.find("o") != std::string::npos || newmode.find("i") != std::string::npos || newmode.find("t") != std::string::npos || newmode.find("l") != std::string::npos || newmode.find("k") != std::string::npos)
+                if(removeOp)
                 {
-                    std::cout << "mode param " << it->mode_param << std::endl;
-                    std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, newmode, it->mode_param);
+                    std::string op = "-";
+                    for(size_t i = 0; i < cmd.mode.size(); i++)
+                        op += "o";
+                    op += " ";
+                    std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, op, it->mode_param);
                     broadcast(it->user_list, modeup);
+                    it->mode_param.clear();
+                    removeOp = 0;
+                }
+                else if ((newmode.find("o") != std::string::npos || newmode.find("i") != std::string::npos || newmode.find("t") != std::string::npos || newmode.find("l") != std::string::npos || newmode.find("k") != std::string::npos) && !flag_err)
+                {
+                    std::string param = "";
+                    newmode = trim_(newmode);
+                    // if(newmode.compare("+t") == 0 && newmode.size() == 3)
+                    // {
+                    //     if(newmode[0] == '+')
+                    //         param += "+";
+                    //     else if(newmode[0] == '-')
+                    //         param += "-";
+
+                    //     for(size_t i = 0; i < cmd.mode.size(); i++)
+                    //     {
+                    //         std::cout << "---------" << i << ":" << cmd.mode[i].second<< std::endl;
+                    //     }
+                    //     param += cmd.mode[0].second;
+                    //     param += " ";
+                    //     std::cout << "+++++" << newmode.size() << std::endl;
+                    // }
+                    // else 
+                        param = newmode + " ";
+                    std::cout << "||||||||||||||||" << cmd.command_arg[1] << std::endl;
+                    std::cout << "mode param *******" << it->mode_param << std::endl;
+                    std::cout << it->mode_param.size() << std::endl;
+                    std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, param, it->mode_param);
+                    broadcast(it->user_list, modeup);
+                    std::cout << modeup << std::endl;
                     it->mode_param.clear();
 
                     return;
                 }
+                else if(flag_err)
+                {
+                    flag_err = 0;
+                }
                 else
                 {
+                    std::cout << "mode param ******* cleared" << it->mode_param << std::endl;
                     it->mode_param.clear();
                     return;
                 }
@@ -1380,10 +1435,18 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     }
 }
 
-std::string print_update(std::string const &oldstring, std::string const &newstring)
+std::string print_update(std::string const &oldstring, std::string &newstring, std::string cmd_arg)
 {
     std::string result;
     bool sign = false;
+    newstring = trim_(newstring);
+
+    if(oldstring.compare(newstring) == 0  && newstring.compare("+t") == 0 )
+        return newstring;
+    else if(oldstring.compare(newstring) == 0 && cmd_arg.find("l") != std::string::npos)
+        return "+l";
+    else if(oldstring.compare(newstring) == 0)
+        return "";
 
     for (size_t i = 0; i < oldstring.length(); ++i)
     {
@@ -1402,7 +1465,6 @@ std::string print_update(std::string const &oldstring, std::string const &newstr
     }
 
     sign = false;
-
     for (size_t i = 0; i < newstring.length(); ++i)
     {
         char c = newstring[i];
@@ -1459,9 +1521,9 @@ void bot(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         }
         return;
     }
-    std::string arg[6] = {"time", "quote", "fact", "dad_joke", "help"};
+    std::string arg[4] = {"time", "quote", "fact", "dad_joke"};
     int i = 0;
-    while (i < 5)
+    while (i < 4)
     {
         if (arg[i] == cmd.bot_arg)
             break;
@@ -1618,80 +1680,6 @@ void bot(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
         {
             perror("send");
-        }
-        break;
-    }
-    case 4:
-    {
-        std::vector<botcmd> commands;
-
-        // Define commands and their details here
-        commands.push_back((botcmd){"USER", "This command is used to set the user's username, hostname, server name, and real name. It's typically sent by the client to the server upon connection to identify the user.", "Command: USER\n", "Parameters: <username> 0 * <realname>"});
-        commands.push_back((botcmd){"NICK", "Changes your nickname on the IRC network. It's used to set or change your nickname, which is how you are identified on the network.", "Command: NICK\n", "Parameters: <nickname>"});
-        commands.push_back((botcmd){"PASS", "Sends a password to the server. This is used for server authentication, allowing users to connect to password-protected servers.", "Command: PASS\n", "Parameters: <password>"});
-        commands.push_back((botcmd){"JOIN", "Joins a specified channel. Users can join channels to participate in discussions or meetings.", "Command: JOIN\n", "Parameters: <channel>{,<channel>} [<key>{,<key>}]"});
-        commands.push_back((botcmd){"PART", "Leaves a specified channel. This command is used to leave a channel you are currently in.", "Command: PART\n", "Parameters: <channel>{,<channel>} [<reason>]"});
-        commands.push_back((botcmd){"PRIVMSG", "Sends a private message to a user or a channel. It's used for direct communication with other users or for sending messages to a channel.", "Command: PRIVMSG\n", "Parameters: <target>{,<target>} <text to be sent>"});
-        commands.push_back((botcmd){"NOTICE", "Sends a notice to a user or a channel. Notices are similar to private messages but are typically used for system messages or notices from the server.", "Command: NOTICE\n", "Parameters: <target>{,<target>} <text to be sent>"});
-        commands.push_back((botcmd){"QUIT", "Disconnects you from the IRC network. This command is used to leave the IRC network and disconnect from the server.", "Command: QUIT\n", "Parameters: [<reason>]"});
-        commands.push_back((botcmd){"INVITE", "Invites a user to a channel. This command is used to invite another user to join a channel you are currently in.", "Command: INVITE\n", "Parameters: <nickname> <channel>"});
-        commands.push_back((botcmd){"TOPIC", "Changes the topic of a channel. The topic is a short description or subject of the channel's discussion.", "Command: TOPIC\n", "Parameters: <channel> [<topic>]"});
-        commands.push_back((botcmd){"KICK", "Forcefully remove a user from a channel. This command is used by channel operators to remove users from a channel.", "Command: KICK\n", "Parameters: <channel> <user> *( \",\" <user> ) [<comment>]"});
-
-        std::stringstream ss;
-        ss << "List of Available IRC Commands:\n\n";
-        std::string li = ss.str();
-        li += "\n";
-        std::string motodd = RPL_MOTD(client.nickname, li);
-        if (send(client.c_fd, motodd.c_str(), motodd.length(), 0) == -1)
-        {
-            perror("send");
-        }
-        std::stringstream oss;
-        // std::string line;
-        for (std::vector<botcmd>::const_iterator it = commands.begin(); it != commands.end(); ++it)
-        {
-            const botcmd &command = *it;
-            oss << command.name << ":\n";
-            std::string l1 = oss.str(); // Convert the stringstream to a std::string
-            l1 += "\n";
-            std::string m1 = RPL_MOTD(client.nickname, l1);
-            if (send(client.c_fd, m1.c_str(), m1.length(), 0) == -1)
-            {
-                perror("send");
-            }
-            oss.str("");
-            oss.clear();
-            oss << "Description: " << command.description << "\n";
-            std::string l2 = oss.str(); // Convert the stringstream to a std::string
-            l2 += "\n";
-            std::string m2 = RPL_MOTD(client.nickname, l2);
-            if (send(client.c_fd, m2.c_str(), m2.length(), 0) == -1)
-            {
-                perror("send");
-            }
-            oss.str("");
-            oss.clear();
-            oss << "Usage: " << command.usage << "\n\n";
-            std::string l3 = oss.str(); // Convert the stringstream to a std::string
-            l3 += "\n";
-            std::string m3 = RPL_MOTD(client.nickname, l3);
-            if (send(client.c_fd, m3.c_str(), m3.length(), 0) == -1)
-            {
-                perror("send");
-            }
-            oss.str("");
-            oss.clear();
-            oss << command.parameters << "\n\n";
-            std::string l4 = oss.str(); // Convert the stringstream to a std::string
-            l4 += "\n";
-            std::string m4 = RPL_MOTD(client.nickname, l4);
-            if (send(client.c_fd, m4.c_str(), m4.length(), 0) == -1)
-            {
-                perror("send");
-            }
-            oss.str("");
-            oss.clear();
         }
         break;
     }

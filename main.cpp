@@ -25,11 +25,11 @@ int main(int ac, char **av)
     (void)ac;
     try
     {
-        // if (ac != 3)
-        // {
-        //     std::cerr<<"Usage : ./ircserver PORT[6000 - 7000] password"<<std::endl;
-        //     return 1;
-        // }
+        if (ac != 3)
+        {
+            std::cerr<<"Usage : ./ircserver PORT[6000 - 7000] password"<<std::endl;
+            return 1;
+        }
             // limits ports
         // if (av[1] == NULL || !av[2][0])
         // {

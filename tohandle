@@ -18,3 +18,37 @@ join #keychan lola
 
 
 
+//////////////
+topic:
+topic #doo
+:e3r4p14.1337.ma 331 sooka #doo :No topic is set
+topic #doo lalla
+:e3r4p14.1337.ma 332 sooka #doo :lalla
+topic #doo
+:e3r4p14.1337.ma 331 sooka #doo :No topic is set
+topic #doo :lalla dounia
+:e3r4p14.1337.ma 332 sooka #doo :lalla douni
+
+invite:
+invite #doo ew
+:e3r4p14.1337.ma 401 sooka #doo :No such nick
+even no msg appe
+
+nick:
+nick oop
+:ew!~ewfr@127.0.0.1 NICK :oop
+msg broadcasted => :ew!~ewfr@127.0.0.1 NICK :oop 
+instead of :dan-!d@localhost NICK Mamoped
+; dan- changed his nickname to Mamoped.
+
+part:
+part #qq
+:oop!~ewfr@127.0.0.1 PART #qq 
+if operator has part the channel, the channel will no longer exist 
+so should be removed 
+bad bahavior :
+join #qq : no behavior done 
+
+topic #qq
+:e3r4p14.1337.ma 331 sooka #qq :No topic is set 
+as like the channel exists which is not

@@ -199,6 +199,11 @@ void Server::add_to_pfds(int newfd)
 void Server::del_from_pfds(int fdd)
 {
     std::vector<struct pollfd>::iterator it;
+    for(std::list<Clientx>::iterator i = clients_list.begin(); i != clients_list.end(); i++)
+    {
+        if((*i).c_fd == fdd)
+            clients_list.erase(i);
+    }
     for (it = pfds.begin(); it != pfds.end(); it++) {
         if ((*it).fd == fdd){
             pfds.erase(it);
@@ -323,7 +328,6 @@ void Server::remove_from_channels(Server &server, int fd, Command &cmd)
 
 void Server::handleClientDataMsg(int fd)
 {
-
     const int buffer_len = 1024;
     char buf[buffer_len];
     int nbytes = recv(fd, buf, buffer_len, 0);
