@@ -645,7 +645,7 @@ int_fast16_t checkCHANTYPES_(std::string &str){
     return 1;
 }
 
-void validate_Nick(std::string &str, Clientx &user){
+int validate_Nick(std::string &str, Clientx &user){
     std::vector<std::string> splited = splitt_(str, ' ');
     if (!checkCHANTYPES_(str)){
         std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
@@ -653,6 +653,7 @@ void validate_Nick(std::string &str, Clientx &user){
         {
             perror("send");
         }
+        return 1;
     }else{
         if (splited[0].size() > 15){
             std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
@@ -660,11 +661,14 @@ void validate_Nick(std::string &str, Clientx &user){
             {
                 perror("send");
             }
+            return 1;
         }
         else{
                 user.nickname = splited[0];
+                return 0;
         }
     }
+    return 0;
 }
 
 void nick(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients)
@@ -681,10 +685,13 @@ void nick(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
         // }
         if (it == clients.end())
         {
+            if (validate_Nick(cmd.nickname, client))
+            {
+                return;
+            }
             std::string nickmsg = NICK_MSG(client.nickname, client.username, client.ip, cmd.nickname);
             broadcast2(clients, nickmsg);
             // write(client.c_fd, nickmsg.c_str(), nickmsg.size());
-            validate_Nick(cmd.nickname, client);
             // client.nickname = cmd.nickname;
         }
         else
@@ -1546,7 +1553,7 @@ void bot(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             perror("send");
         }
         return;
-    }
+    }   
     std::string arg[4] = {"time", "quote", "fact", "dad_joke"};
     int i = 0;
     while (i < 4)
@@ -1572,15 +1579,15 @@ void bot(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     }
     case 1:
     {
-        CURL *curl;
-        std::string data;
-        curl = curl_easy_init();
+        CURL *curl; // Create a CURL pointer
+        std::string data; // Create a string to store the data
+        curl = curl_easy_init(); 
         if (curl)
         {
             curl_easy_setopt(curl, CURLOPT_URL, "https://api.quotable.io/random");
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
-            CURLcode res = curl_easy_perform(curl);
+            CURLcode res = curl_easy_perform(curl); 
             if (res != CURLE_OK)
             {
                 // Handle error

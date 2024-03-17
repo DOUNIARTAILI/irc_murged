@@ -496,6 +496,7 @@ int_fast16_t checkCHANTYPES(std::string &str){
 
 void Server::validateNick(std::string &str, Clientx &user){
     std::vector<std::string> splited = this->splitt(str, ' ');
+    std::cout<<"the nick str ==> "<<"|"<<str<<"|"<<std::endl;
     if (!checkCHANTYPES(str)){
         std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
