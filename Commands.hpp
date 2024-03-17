@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Commands.hpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/17 23:29:48 by drtaili           #+#    #+#             */
+/*   Updated: 2024/03/17 23:29:50 by drtaili          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 #include<iostream>
 #include<string>
@@ -104,14 +116,6 @@ class Command
     void botCommand();
 };
 
-struct botcmd
-{
-    std::string name;
-    std::string description;
-    std::string usage;
-    std::string parameters;
-};
-
 void join(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void kick(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void part(std::vector<Channel>&chan, Command &cmd, Clientx &client);
@@ -120,7 +124,6 @@ void nick(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Cl
 void prv(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients);
 void topicf(std::vector<Channel>&chan, Command &cmd, Clientx &client , std::list<Clientx>&clients);
 void invite(std::vector<Channel>&chan, Command &cmd, Clientx &client, std::list<Clientx> &clients);
-// void broadcast(std::vector<Clientx> &clients, std::string msg);
 void modef(std::vector<Channel>&chan, Command &cmd, Clientx &client);
 void broadcast(std::vector<Clientx *> &clients, std::string msg);
 void bot(std::vector<Channel>&chan, Command &cmd, Clientx &client);

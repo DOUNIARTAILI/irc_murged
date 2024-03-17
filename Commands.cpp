@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/17 23:29:56 by drtaili           #+#    #+#             */
+/*   Updated: 2024/03/17 23:30:03 by drtaili          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include"Commands.hpp"
 #include<cctype>
 #include "Channel.hpp"
@@ -39,7 +51,6 @@ void Command::joincommand() // fill channel vector with channel name and key
     size_t i = 0;
     if (command_arg.size() < 1)
     {
-        std::cerr<<"not enough arguments"<<std::endl;
         return ;
     }
     std::istringstream channels(command_arg[0]);
@@ -65,7 +76,6 @@ void Command::kickcommand()
     try{
     if (command_arg.size() < 1)
     { 
-        std::cerr<<"not enough arguments"<<std::endl;
         return ;
     }
     if (command_arg.size() > 0) 
@@ -90,7 +100,6 @@ void Command::kickcommand()
     }
     catch(std::exception &e)
     {
-        std::cerr<<e.what()<<std::endl;
     }
 }
 
@@ -122,17 +131,11 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         toupper(command);
     while (iss >> command_args)
     {
-        command_arg.push_back(command_args); // hh
+        command_arg.push_back(command_args);
         size_arg++;
     }
     if (!command.empty())
-    {
-        // if (command_args.size() < 1 && iscommand(command) && command != "QUIT")
-        // {
-        //     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, command);
-        //     write(client.c_fd, moreparams.c_str(), moreparams.size());
-        //     return ;
-        // }    
+    {  
         toupper(command);
         if (command == "PONG")
             return ;
@@ -184,7 +187,6 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         else if (command == "QUIT")
         {
             quitcommand();
-            std::cout<<"reason for quit "<<comment<<std::endl;
             quit(chan, cmd, client, clients, server);
         }
         else if (command == "PART")
@@ -202,13 +204,9 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
             modecommand();
             modef(chan, cmd, client);
         }
-        // else if (command == "LISTNICK")
-        //     printallnicknames(clients);
         else
         {
             std::string unknowncommand = ERR_UNKNOWNCOMMAND(client.nickname, command);
-            std::cout<<cmd.command_arg.size()<<std::endl;
-            // write(client.c_fd, unknowncommand.c_str(), unknowncommand.size());
             if (send(client.c_fd, unknowncommand.c_str(), unknowncommand.size(), 0) == -1)
                 perror("send");
             return ;
@@ -275,22 +273,15 @@ void Command::topiccommand()
     }
     catch(std::exception &e)
     {
-        std::cerr<<e.what()<<std::endl;
     }
 }
 
 void Command::invitecommand()
 {
-    std::cout<<"invite cmdsize "<<command_arg.size()<<std::endl;
     if (command_arg.size() > 2)
     {
-        for(size_t i = 0; i < command_arg.size(); i++)
-        {
-            std::cout  << "|" << command_arg[i] << "|" << std::endl;
-        }
         if(command_arg[1][0] == ':')
             command_arg[1].erase(0, 1);
-        //return ;
     }   
     if (command_arg.size() > 0)
             nickname = trim__(command_arg[0]);
@@ -302,7 +293,6 @@ void Command::nickcommand()
 {
     if (command_arg.size() < 1)
     { 
-        std::cerr<<"not enough arguments"<<std::endl;
         return ;
     }
     if (command_arg[0][0] == ':')
@@ -315,7 +305,6 @@ void Command::partcommand()
 {
     if (command_arg.size() < 1)
     {
-        std::cerr<<"not enough arguments"<<std::endl;
         return ;
     }
     std::istringstream channels(command_arg[0]);

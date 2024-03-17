@@ -1,5 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/17 23:30:45 by drtaili           #+#    #+#             */
+/*   Updated: 2024/03/17 23:30:51 by drtaili          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
-#define backlog 7
 #include"Channel.hpp"
 #include <iostream>
 #include <cstring>
@@ -26,7 +37,6 @@ public:
     int c_fd;
     bool pass;
     bool connected;
-    // struct sockaddr_in cl;
     char ip[100];
 
     Clientx()
@@ -69,7 +79,7 @@ public:
         return client.nickname == this->nickname;
     }
     ~Clientx(){
-        // delete ipaddr;
+        
     }
 };
 
@@ -78,24 +88,15 @@ public:
 
 class Command;
 
-class Data{
-
-};
-// class Data;
-
 class Server{
 private:
-    // Data *data;
     static std::string PASS;
-    // std::vector<Clientx>   clientsList;
     std::list<Clientx> clients_list;
     static std::vector<pollfd> pfds;
     std::string port;
     static std::string hostname;
     std::vector<std::string>    cmds;        
     std::vector<Channel>        channels;
-    Clientx guest;
-    // std::vector<std::string> commandparsed;
 
     int listenerSock; 
 public:
@@ -109,33 +110,21 @@ public:
     void del_from_pfds(int fdd);
     std::string getHostname();
     std::string getPASS();
-    void newConnection(struct pollfd *pfds, int newfd, int fd_count, int fd_size, struct sockaddr_storage remoteaddr, char *remoteIP);
-    void newMsg();
-    void handleNewConnection();
-    void handleClientDataMsg(int index);
-    void parseCmd(int i);
-    void    auth(int i);
-    std::string check_num(char c, int index);
-    std::string    checkExnick(std::string nick);
+    void handleNewConnection(void);
+    void handleClientDataMsg(int fd);
     void runServer();
     void addUser(int fd, std::string ip);
-    // void parcing(int i);
     std::vector<std::string> parcing(Clientx &Guest);
-    // std::vector<std::string> parcing(int i);
     std::string toupper(std::string &str);
     std::string trim(const std::string &str);
     std::vector<std::string> splitt(const std::string &str, char del);
     void Authenticate(Clientx &Guest);
-    // void Authenticate(int fd, int iloop);
-    // void Authenticate(int fd);
     void validatePass(std::string &str, Clientx &Guest);
     void validateNick(std::string &str, Clientx &Guest);
     void validateUser(std::string &str, Clientx &Guest);
     int  nickalreadyexist(std::string nick);
     void Register(Clientx &guest);
-    void fdHandler(int i);
     std::list<Clientx>::iterator getUserfromClientlist(int fd);
-    void resetGuest();
     std::vector<std::string> splitingCmd(const std::string &str, char del);
     std::string userNicknameFromFd(int fd);
     void remove_from_channels(Server &server, int fd, Command &cmd);

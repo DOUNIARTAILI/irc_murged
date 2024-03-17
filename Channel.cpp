@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/17 23:30:16 by drtaili           #+#    #+#             */
+/*   Updated: 2024/03/17 23:30:18 by drtaili          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include"Channel.hpp"
 #include"server.hpp"
 
@@ -70,7 +82,6 @@ void Channel::remove_operator(const std::string &client)
     std::vector<Clientx *>::iterator it = std::find(op_list.begin(), op_list.end(), nickcmp(client));
     if (it != op_list.end())
     {
-        std::cout << "t7ied op\n";
         op_list.erase(it);
     }
 }
@@ -80,7 +91,6 @@ void Channel::remove_invite(Clientx &client)
     std::vector<Clientx *>::iterator it = std::find(inv_list.begin(), inv_list.end(), nickcmp(client.nickname));
     if (it != inv_list.end())
     {
-        // std::cout << ""
         inv_list.erase(it);
     }
 }
@@ -105,7 +115,6 @@ bool Channel::is_operator(std::string const &user)
     {
         if (op_list[i]->nickname == user)
         {
-            std::cout << "l9a nickname!\n";
              return true;
         }
     }
@@ -125,10 +134,8 @@ bool Channel::is_invite(std::string const &user)
 void Channel::listalloperators()
 {
     size_t i = 0;
-    std::cout<<"operators list :"<<std::endl;
     while(i < op_list.size())
     {
-        std::cout<<op_list[i]<<std::endl;
         i++;
     }
 }

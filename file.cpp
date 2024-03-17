@@ -1,29 +1,28 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   file.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/17 23:29:41 by drtaili           #+#    #+#             */
+/*   Updated: 2024/03/17 23:32:37 by drtaili          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Channel.hpp"
 #include "Commands.hpp"
 #include "server.hpp"
 
 class Clientx;
 
-// void kick_broadcast(std::vector<Channel>::iterator it ,Clientx  &clients,std::string kicked, std::string reason)
-// {
-//     size_t i = 0;
-//     std::string kickstr;
-//     while (i < it->user_list.size())
-//     {
-//         std::string kickmsg = KICK_MSG(clients.nickname, clients.ip, it->name, kicked, reason);
-//         write(it->user_list[i]->c_fd, kickstr.c_str(), kickstr.size());
-//         i++;
-//     }
-// }
-std::string old_arg;
+std::string old_arg; //GLOBAL !!
+
 void broadcast(std::vector<Clientx *> &clients, std::string msg)
 {
     size_t i = 0;
-    std::cout << "size clients " << clients.size() << std::endl;
     while (i < clients.size())
     {
-        std::cout << "nickname " << clients[i]->nickname << std::endl;
-        // write(clients[i]->c_fd, msg.c_str(), msg.size());
         if (send(clients[i]->c_fd, msg.c_str(), msg.size(), 0) == -1)
         {
             perror("send");
@@ -37,7 +36,6 @@ void broadcast2(std::list<Clientx> &clients, std::string msg)
     std::list<Clientx>::iterator i = clients.begin();
     while (i != clients.end())
     {
-        // write(i->c_fd, msg.c_str(), msg.size());
         if (send(i->c_fd, msg.c_str(), msg.size(), 0) == -1)
         {
             perror("send");
@@ -46,65 +44,20 @@ void broadcast2(std::list<Clientx> &clients, std::string msg)
     }
 }
 
-// void remove_from_channels(std::vector<Channel> &chan, int fd_target)
-// {
-//     (void)fd_target;
-//     std::vector<Channel>::iterator iter = chan.begin();
-
-//     while (iter != chan.end())
-//     {
-//         std::cout << iter->name << std::endl;
-//         for(std::vector<Clientx *>::iterator i = iter->user_list.begin(); i != iter->user_list.end(); i++)
-//         {
-//             if(i >= iter->user_list.end())
-//                 break;
-//             std::cout << (*i)->nickname << "|" << (*i)->c_fd << std::endl;
-//             // if((*i)->c_fd == fd_target)
-//             // {
-//             //     //remove from channel
-//             //     puts("1");
-//             //     iter->user_list.erase(i);
-//             //     // puts("2");
-//             //     // iter->op_list.erase(i);
-//             // }
-//         }
-//         iter++;
-//         break;
-//     }
-//     puts("khrejjjj");
-// }
-
 void broadcast3(std::list<Clientx> &clients, std::string msg, Server &server,std::vector<Channel> &chan)
 {
-
+    (void)server;
     (void)chan;
     std::list<Clientx>::iterator i = clients.begin();
     while (i != clients.end())
     {
-    std::cout << "size of reset fds = " << server.getPfds().size() << " | " << i->c_fd << std::endl;
-        // write(i->c_fd, msg.c_str(), msg.size());
         if (send(i->c_fd, msg.c_str(), msg.size(), 0) == -1)
         {
-            // server.del_from_pfds(i->c_fd);
-            // for()
             perror("send 1");
         }
-        //remove_from_channels(chan, i->c_fd);
         ++i;
     }
 }
-
-// void broadcast(std::vector<Clientx *> &clients, std::string msg)
-// {
-//     size_t i = 0;
-//     while (i < clients.size())
-//     {
-//         write(clients[i]->c_fd, msg.c_str(), msg.size());
-//         i++;
-//     }
-// }
-
-std::vector<Clientx>::iterator find_client(std::vector<Clientx> &clients, const Clientx &client);
 
 std::string my_hostname()
 {
@@ -135,37 +88,30 @@ std::string usersonchan(Channel &channel)
 void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
 {
     size_t i = 0;
-    // std::cout<<"channel size => "<<cmd.channel.size()<<std::endl;
+
     if (cmd.command_arg.size() > 0)
     {
         while (i < cmd.channel.size())
         {
-            //     cmd.channel[i].first = '#' + cmd.channel[i].first;
             std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
             if (it != chan.end())
             {
-                // std::cout<<"chnanel >> "<<it->name<<std::endl;
                 if (it->user_list.size() >= it->max_users && it->mode.find('l') != std::string::npos)
                 {
                     std::string maxusers = ERR_CHANNELISFULL(client.nickname, cmd.channel[i].first);
-                    // write(client.c_fd, maxusers.c_str(), maxusers.size());
-
                     if (send(client.c_fd, maxusers.c_str(), maxusers.size(), 0) == -1)
                     {
                         perror("send");
                     }
-                    // broadcast(it->user_list, maxusers);
                     return;
                 }
                 if (it->mode.find('i') != std::string::npos && it->is_invite(client.nickname) == false)
                 {
                     std::string inviteonly = ERR_INVITEONLYCHAN(client.nickname, cmd.channel[i].first);
-                    // write(client.c_fd, inviteonly.c_str(), inviteonly.size());
                     if (send(client.c_fd, inviteonly.c_str(), inviteonly.size(), 0) == -1)
                     {
                         perror("send");
                     }
-                    // broadcast(it->user_list, inviteonly);
                     return;
                 }
                 if (it->mode.find('k') != std::string::npos && it->pwd != cmd.channel[i].second)
@@ -173,7 +119,6 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                     if (!it->is_user(client.nickname))
                     {
                         std::string badpassword = ERR_BADCHANNELKEY(client.nickname, cmd.channel[i].first);
-                        // write(client.c_fd, badpassword.c_str(), badpassword.size());
                         if (send(client.c_fd, badpassword.c_str(), badpassword.size(), 0) == -1)
                         {
                             perror("send");
@@ -188,13 +133,11 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                     std::string j_rpl = JOIN_SUCC(client.nickname, client.username, client.ip, cmd.channel[i].first);
                     broadcast(it->user_list, j_rpl);
                     j_rpl = RPL_NAMERPLY(client.nickname, cmd.channel[i].first, usersonchan(*it));
-                    // write(client.c_fd, j_rpl.c_str(), j_rpl.size());
                     if (send(client.c_fd, j_rpl.c_str(), j_rpl.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     j_rpl = RPL_ENDOFNAMES(client.nickname, cmd.channel[i].first);
-                    // write(client.c_fd, j_rpl.c_str(), j_rpl.size());
                     if (send(client.c_fd, j_rpl.c_str(), j_rpl.size(), 0) == -1)
                     {
                         perror("send");
@@ -206,7 +149,6 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                 if (cmd.channel[i].first[0] != '#')
                 {
                     std::string notonchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[0].first);
-                    // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                     if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                     {
                         perror("send");
@@ -215,7 +157,6 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                 else if (cmd.channel[i].first[0] == '#' && !cmd.channel[i].first[1])
                 {
                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "JOIN #");
-                    // write(client.c_fd, moreparams.c_str(), moreparams.size());
                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
                     {
                         perror("send");
@@ -223,25 +164,21 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                 }
                 else
                 {
-                    // broadcast !!
                     Channel tmp(cmd.channel[i].first);
                     chan.push_back(tmp);
                     chan[chan.size() - 1].add_user(client);
                     chan[chan.size() - 1].add_operator(client);
                     std::string j_rpl = JOIN_SUCC(client.nickname, client.username, client.ip, cmd.channel[i].first);
-                    // write(client.c_fd, j_rpl.c_str(), j_rpl.size());
                     if (send(client.c_fd, j_rpl.c_str(), j_rpl.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     j_rpl = RPL_NAMERPLY(client.nickname, cmd.channel[i].first, usersonchan(chan[chan.size() - 1]));
-                    // write(client.c_fd, j_rpl.c_str(), j_rpl.size());
                     if (send(client.c_fd, j_rpl.c_str(), j_rpl.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     j_rpl = RPL_ENDOFNAMES(client.nickname, cmd.channel[i].first);
-                    // write(client.c_fd, j_rpl.c_str(), j_rpl.size());
                     if (send(client.c_fd, j_rpl.c_str(), j_rpl.size(), 0) == -1)
                     {
                         perror("send");
@@ -254,7 +191,6 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     else
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "JOIN");
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -267,7 +203,6 @@ void broadcast_kick(std::vector<Channel>::iterator it, Clientx &user, std::strin
     for (size_t i = 0; i < it->user_list.size(); ++i)
     {
         std::string syn = KICK_MSG(user.nickname, user.ip, it->name, cli, reason);
-        // write(it->user_list[i]->c_fd, syn.c_str(), syn.size());
         if (send(it->user_list[i]->c_fd, syn.c_str(), syn.size(), 0) == -1)
         {
             perror("send");
@@ -278,9 +213,6 @@ void broadcast_kick(std::vector<Channel>::iterator it, Clientx &user, std::strin
 void kick(std::vector<Channel> &chan, Command &cmd, Clientx &client)
 {
     size_t i = 0;
-    // size_t x = 0;
-    // size_t j = 0;
-    std::cout<<"kick command_arg.size() =="<<cmd.command_arg.size()<<std::endl;
     if (cmd.command_arg.size() > 1)
     {
         std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[0].first));
@@ -290,20 +222,15 @@ void kick(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             {
                 while (i < cmd.users.size())
                 {
-                    std::cout << it->is_user(cmd.users[i]) << std::endl;
-                    std::cout << cmd.users[i] << std::endl;
                     if (it->is_user(cmd.users[i]))
                     {
                         broadcast_kick(it, client, cmd.users[i], cmd.comment);
-                        // write(client.c_fd, kickmsg.c_str(), kickmsg.size());
-                        // kick_broadcast(it, client, cmd.users[0], cmd.comment);
                         it->remove_operator(cmd.users[i]);
                         it->remove_user(cmd.users[i]);
                     }
                     else
                     {
                         std::string nosuchnick = ERR_NOSUCHNICK(client.nickname, cmd.users[i]);
-                        // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                         if (send(client.c_fd, nosuchnick.c_str(), nosuchnick.size(), 0) == -1)
                         {
                             perror("send");
@@ -315,7 +242,6 @@ void kick(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             else
             {
                 std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
-                // write(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size());
                 if (send(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size(), 0) == -1)
                 {
                     perror("send");
@@ -325,7 +251,6 @@ void kick(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         else
         {
             std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[i].first);
-            // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
             if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
             {
                 perror("send");
@@ -335,7 +260,6 @@ void kick(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     else
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "KICK");
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -348,7 +272,6 @@ void part(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     if (cmd.command_arg.size() < 1)
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "PART");
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -374,7 +297,6 @@ void part(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             else
             {
                 std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[i].first);
-                // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                 if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                 {
                     perror("send");
@@ -384,8 +306,6 @@ void part(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         else
         {
             std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[i].first);
-            // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
-            std::cout << "<<<<<<"<< cmd.channel[i].first << "  " << i << "   " << client.nickname << std::endl;
             if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
             {
                 perror("send");
@@ -395,52 +315,11 @@ void part(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     }
 }
 
-// void clearchannel(std::vector<Channel>&chan, Clientx &client)
-// {
-//     size_t i = 0;
-//     while(i < chan.size())
-//     {
-//         if (chan[i].is_user(client.nickname))
-//         {
-//             if (chan[i].user_list.size() == 0)
-//                 chan.erase(chan.begin() + i);
-//         }
-//         i++;
-//     }
-// }
-
-void privmsg(std::vector<Channel> &chan, Command &cmd, Clientx &client)
-{
-    size_t i = 0;
-    if (cmd.command_arg.size() > 0)
-    {
-        while (i < cmd.channel.size())
-        {
-            if (cmd.channel[i].first[0] != '#')
-                cmd.channel[i].first = '#' + cmd.channel[i].first;
-            std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), cmd.channel[i].first);
-            if (it != chan.end())
-            {
-                if (it->is_user(client.nickname))
-                {
-                    std::cout << client.nickname << " sent a message to " << it->name << " : " << cmd.command_arg[0] << std::endl;
-                }
-                else
-                    std::cout << client.nickname << " not found on channel!" << std::endl;
-            }
-            else
-                std::cout << "Channel not found!" << std::endl;
-            i++;
-        }
-    }
-}
 
 void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients)
 {
-    // size_t i = 0;
     if (cmd.command_arg.size() > 1)
     {
-        std::cout << "INVITE |" << cmd.channel[0].first[0] << std::endl;
         if (cmd.channel[0].first[0] != '#')
             cmd.channel[0].first = '#' + cmd.channel[0].first;
         std::list<Clientx>::iterator it = std::find(clients.begin(), clients.end(), Clientx(cmd.command_arg[0]));
@@ -452,7 +331,6 @@ void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                 if (!it2->is_user(client.nickname))
                 {
                     std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[0].first);
-                    // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                     if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                     {
                         perror("send");
@@ -462,7 +340,6 @@ void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                 if (it2->is_operator(client.nickname))
                 {
                     std::string sendinv = INVITE_MSG(client.nickname, client.username, client.ip, cmd.command_arg[0], cmd.channel[0].first);
-                    // write(it->c_fd, sendinv.c_str(), sendinv.size());
                     if (send(it->c_fd, sendinv.c_str(), sendinv.size(), 0) == -1)
                     {
                         perror("send");
@@ -472,7 +349,6 @@ void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                 else
                 {
                     std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[0].first);
-                    // write(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size());
                     if (send(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size(), 0) == -1)
                     {
                         perror("send");
@@ -482,7 +358,6 @@ void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
             else
             {
                 std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[0].first);
-                // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
                 if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
                 {
                     perror("send");
@@ -492,7 +367,6 @@ void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
         else
         {
             std::string nosuchnick = ERR_NOSUCHNICK(client.nickname, cmd.command_arg[0]);
-            // write(client.c_fd, nosuchnick.c_str(), nosuchnick.size());
             if (send(client.c_fd, nosuchnick.c_str(), nosuchnick.size(), 0) == -1)
             {
                 perror("send");
@@ -502,7 +376,6 @@ void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
     else
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "INVITE");
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -588,24 +461,6 @@ void quit(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
     }
 }
 
-// bot
-// motivational quote
-// movie idea
-//  #include <curl/curl.h>
-//  void test()
-//  {
-//      CURL *ptr;
-//      ptr = curl_easy_init();
-//  }
-//  void quit(std::vector<Channel>&chan, Command &cmd, Clientx &client)
-//  {
-//      (void)chan;
-//      std::string quitmsg = QUIT_MSG(client.nickname, client.username, client.ip, cmd.comment);
-//      write(client.c_fd, quitmsg.c_str(), quitmsg.size());
-//      close(client.c_fd);
-//      // server.clients.erase(std::find(server.clients.begin(), server.clients.end(), client));
-//  }
-
 std::string trim_(const std::string &str)
 {
     size_t leftPos = str.find_first_not_of(" \t\n\r\v\f");
@@ -673,16 +528,10 @@ int validate_Nick(std::string &str, Clientx &user){
 
 void nick(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients)
 {
-    // size_t i = 0;
     (void)chan;
     if (cmd.command_arg.size() > 0)
     {
         std::list<Clientx>::iterator it = std::find(clients.begin(), clients.end(), Clientx(cmd.nickname));
-        // if (it != clients.end() && it->c_fd == client.c_fd)
-        // {
-        //     puts("ignore change nick");
-        //     return ;
-        // }
         if (it == clients.end())
         {
             if (validate_Nick(cmd.nickname, client))
@@ -691,24 +540,19 @@ void nick(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<C
             }
             std::string nickmsg = NICK_MSG(client.nickname, client.username, client.ip, cmd.nickname);
             broadcast2(clients, nickmsg);
-            // write(client.c_fd, nickmsg.c_str(), nickmsg.size());
-            // client.nickname = cmd.nickname;
         }
         else
         {
             std::string nickinuse = ERR_NICKINUSE(client.nickname, cmd.nickname);
-            // write(client.c_fd, nickinuse.c_str(), nickinuse.size());
             if (send(client.c_fd, nickinuse.c_str(), nickinuse.size(), 0) == -1)
             {
                 perror("send");
             }
-            // broadcast2(clients,nickinuse);
         }
     }
     else
     {
         std::string moreparams = ERR_NONICKNAMEGIVEN(client.nickname);
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -735,7 +579,6 @@ void prv(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Cl
                         if (it->user_list[j]->nickname != client.nickname)
                         {
                             std::string prvmsg = PRIVMSG(client.nickname, client.username, client.ip, it->name, cmd.privmessage);
-                            // write(it->user_list[j]->c_fd, prvmsg.c_str(), prvmsg.size());
                             if (send(it->user_list[j]->c_fd, prvmsg.c_str(), prvmsg.size(), 0) == -1)
                             {
                                 perror("send");
@@ -747,7 +590,6 @@ void prv(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Cl
                 else
                 {
                     std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.privmsg_list[i]);
-                    // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
                     if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
                     {
                         perror("send");
@@ -760,7 +602,6 @@ void prv(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Cl
                 if (it != clients.end())
                 {
                     std::string privmsg = PRIVMSG(client.nickname, client.username, client.ip, it->nickname, cmd.privmessage);
-                    // write(it->c_fd, privmsg.c_str(), privmsg.size());
                     if (send(it->c_fd, privmsg.c_str(), privmsg.size(), 0) == -1)
                     {
                         perror("send");
@@ -769,7 +610,6 @@ void prv(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Cl
                 else
                 {
                     std::string nosuchnick = ERR_NOSUCHNICK(client.nickname, cmd.privmsg_list[i]);
-                    // write(client.c_fd, nosuchnick.c_str(), nosuchnick.size());
                     if (send(client.c_fd, nosuchnick.c_str(), nosuchnick.size(), 0) == -1)
                     {
                         perror("send");
@@ -782,7 +622,6 @@ void prv(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Cl
     else
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "PRIVMSG");
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -790,25 +629,25 @@ void prv(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Cl
     }
 }
 
-void printallnicknames(std::vector<Clientx> &clients)
-{
-    size_t i = 0;
-    while (i < clients.size())
-    {
-        std::cout << clients[i].nickname << std::endl;
-        i++;
-    }
-}
+// void printallnicknames(std::vector<Clientx> &clients)
+// {
+//     size_t i = 0;
+//     while (i < clients.size())
+//     {
+//         std::cout << clients[i].nickname << std::endl;
+//         i++;
+//     }
+// }
 
-void printallchannels(std::vector<Channel> &chan)
-{
-    size_t i = 0;
-    while (i < chan.size())
-    {
-        std::cout << chan[i].name << std::endl;
-        i++;
-    }
-}
+// void printallchannels(std::vector<Channel> &chan)
+// {
+//     size_t i = 0;
+//     while (i < chan.size())
+//     {
+//         std::cout << chan[i].name << std::endl;
+//         i++;
+//     }
+// }
 
 std::string tostr(int n)
 {
@@ -835,25 +674,20 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                 if (!it->is_user(client.nickname))
                 {
                     std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[i].first);
-                    // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                     if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     return;
                 }
-                std::cout << "|" << cmd.topic << "|" << std::endl;
                 if (cmd.command_arg.size() == 1 && !chan[i].topic.empty())
                 {
-                    std::cout<<"dkhel cond 1"<<std::endl;
                     std::string topicmsg = RPL_TOPIC(client.nickname, it->name, it->topic);
-                    // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                     if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     std::string topictime = RPL_TOPICWHOTIME(client.nickname, it->name, it->topicsetter, tostr(it->topic_time));
-                    // write(client.c_fd, topictime.c_str(), topictime.size());
                     if (send(client.c_fd, topictime.c_str(), topictime.size(), 0) == -1)
                     {
                         perror("send");
@@ -862,9 +696,7 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                 }
                 else if (cmd.command_arg.size() == 1)
                 {
-                    std::cout<<"dkhel cond 2"<<std::endl;
                     std::string topicmsg = RPL_NOTOPIC(client.nickname, cmd.channel[0].first);
-                    // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                     if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
                     {
                         perror("send");
@@ -878,7 +710,6 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                         if (it->is_operator(client.nickname))
                         {
                             std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
-                            // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                             broadcast(it->user_list, topicmsg);
                             it->topic = cmd.topic;
                             it->topicsetter = client.nickname;
@@ -888,7 +719,6 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                         else if (!it->is_operator(client.nickname) && it->is_user(client.nickname))
                         {
                             std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
-                            // write(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size());
                             if (send(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size(), 0) == -1)
                             {
                                 perror("send");
@@ -899,7 +729,6 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                     if (it->is_user(client.nickname))
                     {
                         std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
-                        // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                         broadcast(it->user_list, topicmsg);
                         it->topic = cmd.topic;
                         it->topic_time = time(NULL);
@@ -908,7 +737,6 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                     else
                     {
                         std::string notonchannel = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
-                        // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                         if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                         {
                             perror("send");
@@ -919,7 +747,6 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
             else
             {
                 std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[i].first);
-                // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
                 if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
                 {
                     perror("send");
@@ -931,7 +758,6 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
     else
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "TOPIC");
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -1010,7 +836,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     if (cmd.command_arg.size() == 0)
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE");
-        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -1026,7 +851,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             if (it->is_user(client.nickname))
             {
                 std::string mode = RPL_CHANNELMODEIS(client.nickname, cmd.channel[0].first, it->mode);
-                // write(client.c_fd, mode.c_str(), mode.size());
                 if (send(client.c_fd, mode.c_str(), mode.size(), 0) == -1)
                 {
                     perror("send");
@@ -1036,7 +860,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             else
             {
                 std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[0].first);
-                // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                 if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                 {
                     perror("send");
@@ -1047,7 +870,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         else
         {
             std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[0].first);
-            // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
             if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
             {
                 perror("send");
@@ -1063,7 +885,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             if (!it->is_user(client.nickname))
             {
                 std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[0].first);
-                // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                 if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                 {
                     perror("send");
@@ -1084,7 +905,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 it->mode += 'i';
                             else if (cmd.mode[i].first == '-')
                             {
-                                std::cout << "value = " << it->mode.find(cmd.mode[i].second) << std::endl;
                                 size_t pos = it->mode.find('i');
                                 if (pos != std::string::npos)
                                     it->mode.erase(it->mode.find('i'));
@@ -1092,7 +912,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                         }
                         if (cmd.mode[i].second == 't')
                         {
-                            std::cout << cmd.mode[i].first << std::endl;
                             if (cmd.mode[i].first == '+')
                                 it->mode += 't';
                             else if (cmd.mode[i].first == '-')
@@ -1112,19 +931,15 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     // bool b = false;
                                     if (max_users > 0)
                                     {
-                                        puts("max_users la");
                                         it->mode += 'l';
                                         it->max_users = atoi(cmd.mode_args[x].c_str());
-                                        std::cout << "argument dial l = " << cmd.mode_args[x] << std::endl;
                                         it->mode_param += cmd.mode_args[x] + ' ';
-                                        std::cout << "it->mode_param  " << it->mode_param << std::endl;
                                     }
                                 }
                                 else
                                 {
                                     flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +l");
-                                    // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
                                     {
                                         perror("send");
@@ -1159,7 +974,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     {
                                         flag_err = 1;
                                         std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
-                                        // write(client.c_fd, user_not_found.c_str(), user_not_found.size());
                                         if (send(client.c_fd, user_not_found.c_str(), user_not_found.size(), 0) == -1)
                                         {
                                             perror("send");
@@ -1170,7 +984,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 {
                                     flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +o");
-                                    // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
                                     {
                                         perror("send");
@@ -1179,9 +992,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                             }
                             else if (cmd.mode[i].first == '-')
                             {
-                                // size_t pos = it->mode.find(cmd.mode[i].second);
-                                // if (pos != std::string::npos)
-                                //     it->mode.erase(it->mode.find(cmd.mode[i].second));
                                 if (cmd.mode_args.size() > x)
                                 {
                                     std::vector<Clientx *>::iterator it2 = std::find(it->user_list.begin(), it->user_list.end(), it->nickcmp(cmd.mode_args[x]));
@@ -1192,15 +1002,13 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                         // size_t found = it->mode.find('o');
                                         // if ()
                                         // it->mode += cmd.mode[i].second;
-                                        std::cout << "client nickname ==>" << client.nickname << std::endl;
-                                        std::cout << "modearg[x] " << cmd.mode_args[x] << std::endl;
+
 
                                         it->mode_param += cmd.mode_args[x] + ' ';
                                         it->remove_operator(cmd.mode_args[x]);
                                         removeOp = 1;
                                         // std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, "-o", it->mode_param);
-                                        std::cout << "modearg[x] " << cmd.mode_args[x] << std::endl;
-                                        std::cout << "client nickname ==>" << client.nickname << std::endl;
+
                                         // size_t found = it->mode.find(cmd.mode_args[x]);
                                         // if (found != std::string::npos)
                                         // {
@@ -1214,7 +1022,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     {
                                         flag_err = 1;
                                         std::string user_not_found = ERR_NOSUCHNICK(client.nickname, cmd.mode_args[x]);
-                                        // write(client.c_fd, user_not_found.c_str(), user_not_found.size());
                                         if (send(client.c_fd, user_not_found.c_str(), user_not_found.size(), 0) == -1)
                                         {
                                             perror("send");
@@ -1225,7 +1032,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 {
                                     flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -o");
-                                    // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
                                     {
                                         perror("send");
@@ -1251,7 +1057,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                     {
                                         flag_err = 1;
                                         std::string alreadyset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
-                                        // write(client.c_fd, alreadyset.c_str(), alreadyset.size());
                                         if (send(client.c_fd, alreadyset.c_str(), alreadyset.size(), 0) == -1)
                                         {
                                             perror("send");
@@ -1262,7 +1067,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 {
                                     flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE +k");
-                                    // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
                                     {
                                         perror("send");
@@ -1275,7 +1079,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 {
                                     flag_err = 1;
                                     std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
-                                    // write(client.c_fd, keynotset.c_str(), keynotset.size());
                                     if (send(client.c_fd, keynotset.c_str(), keynotset.size(), 0) == -1)
                                     {
                                         perror("send");
@@ -1298,16 +1101,12 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                         it->pwd.clear();
                                         it->pwd = "";
                                         it->k_flag = false;
-                                        // std::cout << "password is :" << it->pwd << std::endl;
-                                        std::cout << "|" << cmd.mode_args[x] << "|" << std::endl;
                                         it->mode.erase(it->mode.find(cmd.mode[i].second));
-                                        std::cout << "|" << cmd.mode_args[x] << "|" << std::endl;
                                     }
                                     else
                                     {
                                         flag_err = 1;
                                         std::string keynotset = ERR_KEYALREADYSET(client.nickname, cmd.channel[0].first);
-                                        // write(client.c_fd, keynotset.c_str(), keynotset.size());
                                         if (send(client.c_fd, keynotset.c_str(), keynotset.size(), 0) == -1)
                                         {
                                             perror("send");
@@ -1320,7 +1119,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                         if (pos2 != std::string::npos)
                                         {
                                             it->mode_param.erase(it->mode_param.find(cmd.mode_args[x]), cmd.mode_args[x].size());
-                                            std::cout << "------------------->" << it->mode_param << std::endl;
                                             it->k_flag = false;
                                         }
                                     }
@@ -1329,7 +1127,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                                 {
                                     flag_err = 1;
                                     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "MODE -k");
-                                    // write(client.c_fd, moreparams.c_str(), moreparams.size());
                                     if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
                                     {
                                         perror("send");
@@ -1342,7 +1139,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                         {
                             flag_err = 1;
                             std::string unknownmode = ERR_UNKNOWNMODE(client.nickname, cmd.mode[i].second);
-                            // write(client.c_fd, unknownmode.c_str(), unknownmode.size());
                             if (send(client.c_fd, unknownmode.c_str(), unknownmode.size(), 0) == -1)
                             {
                                 perror("send");
@@ -1352,22 +1148,10 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                     i++;
                 }
                 it->mode = removeDuplicates(it->mode);
-                // std::string res = modeupdate(it->mode, tmp , cmd.mode_args);
-                // std::cout<<res<<std::endl;
-                std::cout << "new ==>" << it->mode << "|" <<std::endl;
-                std::cout << "old ==>" << it->old_mode << "|" <<std::endl;
-                std::cout << "update ===> " << print_update(it->old_mode, it->mode,cmd.command_arg[1]) << "||"<<  std::endl;
                 std::string newmode = print_update(it->old_mode, it->mode, cmd.command_arg[1]) + ' ';
                 for(size_t i = 0; i < cmd.mode.size(); i++)
-                    std::cout << "param " <<cmd.mode[i].second << std::endl;
-                // if (!newmode.find("oitlk"))
-                // {
-                //     std::string mode = RPL_CHANNELMODEIS(client.nickname, cmd.channel[0].first, newmode);
-                //     broadcast(it->user_list, mode);
-                // }
                 if(removeOp)
                 {
-                    std::cout << old_arg <<"++++++++"  << cmd.command_arg[1] << std::endl;
                     if(old_arg.compare(cmd.command_arg[1]) == 0)
                     {
                         removeOp = 0;
@@ -1376,7 +1160,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                         it->mode_param = "";
                         return;
                     }
-                    std::cout << "++++++++" << std::endl;
                     removeOp = 0;
                     std::string op = "-";
                     for(size_t i = 0; i < cmd.mode.size(); i++)
@@ -1391,29 +1174,9 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                 {
                     std::string param = "";
                     newmode = trim_(newmode);
-                    // if(newmode.compare("+t") == 0 && newmode.size() == 3)
-                    // {
-                    //     if(newmode[0] == '+')
-                    //         param += "+";
-                    //     else if(newmode[0] == '-')
-                    //         param += "-";
-
-                    //     for(size_t i = 0; i < cmd.mode.size(); i++)
-                    //     {
-                    //         std::cout << "---------" << i << ":" << cmd.mode[i].second<< std::endl;
-                    //     }
-                    //     param += cmd.mode[0].second;
-                    //     param += " ";
-                    //     std::cout << "+++++" << newmode.size() << std::endl;
-                    // }
-                    // else 
-                        param = newmode + " ";
-                    std::cout << "||||||||||||||||" << cmd.command_arg[1] << std::endl;
-                    std::cout << "mode param *******" << it->mode_param << std::endl;
-                    std::cout << it->mode_param.size() << std::endl;
+                    param = newmode + " ";
                     std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, param, it->mode_param);
                     broadcast(it->user_list, modeup);
-                    std::cout << modeup << std::endl;
                     it->mode_param.clear();
                     it->mode_param = "";
 
@@ -1423,7 +1186,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                 }
                 else
                 {
-                    std::cout << "mode param ******* cleared" << it->mode_param << std::endl;
                     old_arg = cmd.command_arg[1];
                     it->mode_param.clear();
                     it->mode_param = "";
@@ -1434,7 +1196,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             else
             {
                 std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[0].first);
-                // write(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size());
                 if (send(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size(), 0) == -1)
                 {
                     perror("send");
@@ -1444,7 +1205,6 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         else
         {
             std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[0].first);
-            // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
             if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
             {
                 perror("send");
@@ -1459,23 +1219,14 @@ std::string print_update(std::string const &oldstring, std::string &newstring, s
     bool sign = false;
     newstring = trim_(newstring);
 
-    std::cout << "[[["<< old_arg << "|" << old_arg.size() << "|" << cmd_arg.size() << "|"<< cmd_arg << "]]]" <<std::endl;
     if(old_arg.find(cmd_arg) != std::string::npos && old_arg.size() == cmd_arg.size())
         return "";
-    puts("ff");
     if(oldstring.compare(newstring) == 0  && newstring.compare("+t") == 0 )
         return newstring;
     else if(oldstring.compare(newstring) == 0 && cmd_arg.find("l") != std::string::npos)
         return "+l";
     else if(cmd_arg.find("+o") != std::string::npos)
     {
-        // std::string op = "+";
-        // for(size_t i = 0; i < cmd_arg.size(); i++)
-        // {
-        //     if( cmd_arg[i] == 'o')
-        //         op += "o";
-        // }
-        // std::cout << "{}}" << 
         return cmd_arg;
     }
     else if(oldstring.compare(newstring) == 0)
@@ -1681,7 +1432,6 @@ void bot(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             curl_slist_free_all(headers); // Don't forget to free the headers!
             curl_easy_cleanup(curl);
         }
-        std::cout << "joke " << data << std::endl;
         std::string start_tag = "joke\":";
         std::string end_tag = ",\"status\":200";
 

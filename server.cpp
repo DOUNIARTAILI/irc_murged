@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/17 23:30:37 by drtaili           #+#    #+#             */
+/*   Updated: 2024/03/17 23:30:39 by drtaili          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include"server.hpp"
 #include"Commands.hpp"
 #include"Channel.hpp"
@@ -212,19 +224,13 @@ void Server::del_from_pfds(int fdd)
     }
     if (it == pfds.end())
         return;
-
-    size_t i = 0;
-    while (i < pfds.size()){
-        std::cout << "pfd after deletion " << pfds[i].fd << std::endl;
-        i++;
-    }
 }
 
 void Server::handleNewConnection(void)
 {
     Clientx client;
-    int newfdclient; // Newly accept()ed socket descriptor
-    struct sockaddr_storage remoteaddr;// Client address
+    int newfdclient;
+    struct sockaddr_storage remoteaddr;
     socklen_t addrlen;
     char remoteIP[INET_ADDRSTRLEN];
 
@@ -271,11 +277,12 @@ std::vector<std::string> Server::splitingCmd(const std::string &str, char del) {
         std::string arg = str.substr(start, pos - start);
         if (!arg.empty())
             v.push_back(arg);
-        start = pos + 1; // Move past the delimiter
+        start = pos + 1;
     }
 
-    // Handle the last substring (no delimiter after it)
-    if (start < str.size()) { // Ensure there is still content to extract
+
+    if (start < str.size())
+    {
         std::string  lastArg = str.substr(start);
         if (!lastArg.empty())
             v.push_back(lastArg);
@@ -289,20 +296,13 @@ void Server::remove_from_channels(Server &server, int fd, Command &cmd)
     (void)server;
     std::vector<Channel>::iterator iter = channels.begin();
 
-    if(iter == channels.end())
-        std::cout << "channels khawin \n";
-
-    puts("pfff");
     for(; iter != channels.end();iter++)
     {
-        puts("dd");
         std::string nickname = userNicknameFromFd(fd);
-        // if(nickname.empty())
-        //     continue;
+
         if((*iter).is_user(nickname))
         {
             (*iter).remove_user(nickname);
-            std::cout << nickname << " removed from " << (*iter).name << std::endl;
             std::list<Clientx>::iterator  client_it = getUserfromClientlist(fd);
             for(std::vector<Clientx *>::iterator it = (*iter).user_list.begin(); it != (*iter).user_list.end(); it++)
             {
@@ -311,9 +311,7 @@ void Server::remove_from_channels(Server &server, int fd, Command &cmd)
                 {
                     if (send((*it)->c_fd, msg.c_str(), msg.size(), 0) == -1)
                     {
-                        // server.del_from_pfds(i->c_fd);
-                        // for()
-                        perror("send 1");
+                        perror("send");
                     }
                 }
             }
@@ -331,16 +329,9 @@ void Server::handleClientDataMsg(int fd)
     const int buffer_len = 1024;
     char buf[buffer_len];
     int nbytes = recv(fd, buf, buffer_len, 0);
-    //std::cout << "buffer |" << buf  << "|" << std::endl;
     Server server = *this;
 
     std::list<Clientx>::iterator it = getUserfromClientlist(fd);
-    // if (it != this->clients_list.end())
-    // {
-    //     puts("hh");
-    //     it->cmd += buf;
-    //     it->c_fd = fd;
-    // }
 
     for(size_t x = 0; x < channels.size(); x++)
     {
@@ -358,16 +349,11 @@ void Server::handleClientDataMsg(int fd)
         {
             if (it->c_fd == fd)
             {
-                std::cout<<"before killing clients !"<<std::endl;
-                // printpfds(pfds);
-                //quit(this->channels,cmd, *it, this->clients_list, server);
                 std::cout << "pollserver: socket " << fd << " hung up" << std::endl;
                 break;
             }
             ++it;
         }
-            // quit(this->channels,cmd, *it, this->clients_list, server);
-            // std::cout << "pollserver: socket " << sender_fd << " hung up" << std::endl;
         } else {
             perror("recv");
         }
@@ -446,8 +432,6 @@ void Server::runServer()
 }
 
 void Server::validatePass(std::string &str, Clientx &user){
-    // std::cout << "pass of server " << this->PASS << std::endl;
-    // std::cout << "pass of client " << str<< std::endl;
     if (user.connected == true){
         std::string rp = ERR_ALREADYREGISTERED(Server::hostname);
         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
@@ -456,7 +440,6 @@ void Server::validatePass(std::string &str, Clientx &user){
         }
     }
     if (str == this->PASS){
-        std::cout << "pass of server " << this->PASS << std::endl;
         user.pass = true;
     }
     else{
@@ -466,20 +449,6 @@ void Server::validatePass(std::string &str, Clientx &user){
             perror("send");
         }
     }
-    // std::vector<std::string> splited = this->splitt(str, ' ');
-    // if (splited.size() == 1){
-    //     if (splited[0] == this->PASS){
-    //         std::cout << "pass of server " << this->PASS << std::endl;
-    //         user.pass = true;
-    //     }
-    //     else{
-    //         std::string rp = ERR_PASSWDMISTACH(user.ip);
-    //         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
-    //         {
-    //             perror("send");
-    //         }
-    //     }
-    // }
 }
 
 int_fast16_t checkCHANTYPES(std::string &str){
@@ -496,7 +465,6 @@ int_fast16_t checkCHANTYPES(std::string &str){
 
 void Server::validateNick(std::string &str, Clientx &user){
     std::vector<std::string> splited = this->splitt(str, ' ');
-    std::cout<<"the nick str ==> "<<"|"<<str<<"|"<<std::endl;
     if (!checkCHANTYPES(str)){
         std::string rp = ERR_ERRONEUSNICKNAME(user.ip, "NICK");
         if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)
@@ -551,15 +519,6 @@ void Server::validateUser(std::string &str, Clientx &user){
             perror("send");
         }
     }
-}
-
-void Server::resetGuest()
-{
-    this->guest.nickname = "";
-    this->guest.username = "";
-    this->guest.pass = false;
-    this->guest.connected = false;
-    this->guest.c_fd = -1;
 }
 
 void Server::Register(Clientx &user)
@@ -686,7 +645,6 @@ void Server::Authenticate(Clientx &user)
                     break;
                 d++;
             }
-            std::cout<<"d = "<<d<<std::endl;
             if (d == 9)
             {
                 std::string rp = ERR_UNKNOWNCOMMAND(user.ip, firstarg);

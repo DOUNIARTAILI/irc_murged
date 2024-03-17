@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Channel.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/17 23:30:08 by drtaili           #+#    #+#             */
+/*   Updated: 2024/03/17 23:30:10 by drtaili          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 #include<iostream>
 #include<string>
@@ -5,7 +17,7 @@
 #include"server.hpp"
 #include <map>
 #include <utility>
-// #define timeout 77
+
 
 class Clientx;
 
@@ -46,8 +58,6 @@ class Channel
     //----------
     bool operator==(const Channel& other);
     void listalloperators(); 
-    void listallusers();
-    void listallchannels();
     void get_users_list(std::vector<std::string> &users, std::string &users_list);
     Clientx    *nickcmp(const std::string &n);
 };
