@@ -23,6 +23,17 @@ void toupper(std::string &str)
     }
 }
 
+std::string trim__(const std::string &str)
+{
+    size_t leftPos = str.find_first_not_of(" \t\n\r\v\f");
+    size_t rightPos = str.find_last_not_of(" \t\n\r\v\f");
+
+    if (leftPos == std::string::npos || rightPos == std::string::npos)
+        return std::string("");  // Empty string if all characters are whitespace
+
+    return str.substr(leftPos, rightPos - leftPos + 1);
+}
+
 void Command::joincommand() // fill channel vector with channel name and key
 {
     size_t i = 0;
@@ -261,13 +272,18 @@ void Command::invitecommand()
     std::cout<<"invite cmdsize "<<command_arg.size()<<std::endl;
     if (command_arg.size() > 2)
     {
-        std::cerr<<"too many arguments"<<std::endl;
-        return ;
+        for(size_t i = 0; i < command_arg.size(); i++)
+        {
+            std::cout  << "|" << command_arg[i] << "|" << std::endl;
+        }
+        if(command_arg[1][0] == ':')
+            command_arg[1].erase(0, 1);
+        //return ;
     }   
     if (command_arg.size() > 0)
-            nickname = command_arg[0];
+            nickname = trim__(command_arg[0]);
     if (command_arg.size() > 1)
-        channel.push_back(std::make_pair(command_arg[1], ""));
+        channel.push_back(std::make_pair(trim__(command_arg[1]), ""));
 }
 
 void Command::nickcommand()

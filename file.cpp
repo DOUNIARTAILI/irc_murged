@@ -15,7 +15,7 @@ class Clientx;
 //         i++;
 //     }
 // }
-
+std::string old_arg;
 void broadcast(std::vector<Clientx *> &clients, std::string msg)
 {
     size_t i = 0;
@@ -439,6 +439,7 @@ void invite(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
     // size_t i = 0;
     if (cmd.command_arg.size() > 1)
     {
+        std::cout << "INVITE |" << cmd.channel[0].first[0] << std::endl;
         if (cmd.channel[0].first[0] != '#')
             cmd.channel[0].first = '#' + cmd.channel[0].first;
         std::list<Clientx>::iterator it = std::find(clients.begin(), clients.end(), Clientx(cmd.command_arg[0]));
@@ -868,10 +869,7 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                         {
                             std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
                             // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
-                            if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
-                            {
-                                perror("send");
-                            }
+                            broadcast(it->user_list, topicmsg);
                             it->topic = cmd.topic;
                             it->topicsetter = client.nickname;
                             it->topic_time = time(NULL);
@@ -892,10 +890,7 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                     {
                         std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
                         // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
-                        if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
-                        {
-                            perror("send");
-                        }
+                        broadcast(it->user_list, topicmsg);
                         it->topic = cmd.topic;
                         it->topic_time = time(NULL);
                         return;
@@ -1174,9 +1169,9 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                             }
                             else if (cmd.mode[i].first == '-')
                             {
-                                size_t pos = it->mode.find(cmd.mode[i].second);
-                                if (pos != std::string::npos)
-                                    it->mode.erase(it->mode.find(cmd.mode[i].second));
+                                // size_t pos = it->mode.find(cmd.mode[i].second);
+                                // if (pos != std::string::npos)
+                                //     it->mode.erase(it->mode.find(cmd.mode[i].second));
                                 if (cmd.mode_args.size() > x)
                                 {
                                     std::vector<Clientx *>::iterator it2 = std::find(it->user_list.begin(), it->user_list.end(), it->nickcmp(cmd.mode_args[x]));
@@ -1362,6 +1357,17 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                 // }
                 if(removeOp)
                 {
+                    std::cout << old_arg <<"++++++++"  << cmd.command_arg[1] << std::endl;
+                    if(old_arg.compare(cmd.command_arg[1]) == 0)
+                    {
+                        removeOp = 0;
+                        old_arg = cmd.command_arg[1];
+                        it->mode_param.clear();
+                        it->mode_param = "";
+                        return;
+                    }
+                    std::cout << "++++++++" << std::endl;
+                    removeOp = 0;
                     std::string op = "-";
                     for(size_t i = 0; i < cmd.mode.size(); i++)
                         op += "o";
@@ -1369,7 +1375,7 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                     std::string modeup = MODE_MSG(client.nickname, client.username, client.ip, it->name, op, it->mode_param);
                     broadcast(it->user_list, modeup);
                     it->mode_param.clear();
-                    removeOp = 0;
+                    it->mode_param = "";
                 }
                 else if ((newmode.find("o") != std::string::npos || newmode.find("i") != std::string::npos || newmode.find("t") != std::string::npos || newmode.find("l") != std::string::npos || newmode.find("k") != std::string::npos) && !flag_err)
                 {
@@ -1399,19 +1405,21 @@ void modef(std::vector<Channel> &chan, Command &cmd, Clientx &client)
                     broadcast(it->user_list, modeup);
                     std::cout << modeup << std::endl;
                     it->mode_param.clear();
+                    it->mode_param = "";
 
-                    return;
-                }
-                else if(flag_err)
-                {
                     flag_err = 0;
+                    old_arg = cmd.command_arg[1];
+                    return;
                 }
                 else
                 {
                     std::cout << "mode param ******* cleared" << it->mode_param << std::endl;
+                    old_arg = cmd.command_arg[1];
                     it->mode_param.clear();
+                    it->mode_param = "";
                     return;
                 }
+                old_arg = cmd.command_arg[1];
             }
             else
             {
@@ -1441,10 +1449,25 @@ std::string print_update(std::string const &oldstring, std::string &newstring, s
     bool sign = false;
     newstring = trim_(newstring);
 
+    std::cout << "[[["<< old_arg << "|" << old_arg.size() << "|" << cmd_arg.size() << "|"<< cmd_arg << "]]]" <<std::endl;
+    if(old_arg.find(cmd_arg) != std::string::npos && old_arg.size() == cmd_arg.size())
+        return "";
+    puts("ff");
     if(oldstring.compare(newstring) == 0  && newstring.compare("+t") == 0 )
         return newstring;
     else if(oldstring.compare(newstring) == 0 && cmd_arg.find("l") != std::string::npos)
         return "+l";
+    else if(cmd_arg.find("+o") != std::string::npos)
+    {
+        // std::string op = "+";
+        // for(size_t i = 0; i < cmd_arg.size(); i++)
+        // {
+        //     if( cmd_arg[i] == 'o')
+        //         op += "o";
+        // }
+        // std::cout << "{}}" << 
+        return cmd_arg;
+    }
     else if(oldstring.compare(newstring) == 0)
         return "";
 
