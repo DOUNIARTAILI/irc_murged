@@ -678,15 +678,16 @@ void Server::Authenticate(Clientx &user)
             Register(user);
             break;
         default :
-            std::string cmd[10]= {"EXIT","JOIN", "BOT","KICK", "TOPIC", "PRIVMSG", "INVITE", "QUIT", "PART", "MODE"};
+            std::string cmd[9]= {"JOIN", "BOT","KICK", "TOPIC", "PRIVMSG", "INVITE", "QUIT", "PART", "MODE"};
             int d = 0;
-            while(d < 10)
+            while(d < 9)
             {
                 if (cmd[d] == firstarg)
                     break;
                 d++;
             }
-            if (d == 10)
+            std::cout<<"d = "<<d<<std::endl;
+            if (d == 9)
             {
                 std::string rp = ERR_UNKNOWNCOMMAND(user.ip, firstarg);
                 if (send(user.c_fd, rp.c_str(), rp.length(), 0) == -1)

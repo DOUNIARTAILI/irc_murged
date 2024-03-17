@@ -132,7 +132,7 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         //     std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, command);
         //     write(client.c_fd, moreparams.c_str(), moreparams.size());
         //     return ;
-        // }
+        // }    
         toupper(command);
         if (command == "PONG")
             return ;
@@ -158,7 +158,6 @@ void Command::getcommand(std::string const &str, std::vector<Channel> &chan, Com
         }
         else if (command == "BOT")
         {
-            std::cout<<"bot xxxxxtime"<<std::endl;
             botCommand();
             bot(chan, cmd, client);
         }
