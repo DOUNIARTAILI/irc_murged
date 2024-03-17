@@ -837,6 +837,7 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                 std::cout << "|" << cmd.topic << "|" << std::endl;
                 if (cmd.command_arg.size() == 1 && !chan[i].topic.empty())
                 {
+                    std::cout<<"dkhel cond 1"<<std::endl;
                     std::string topicmsg = RPL_TOPIC(client.nickname, it->name, it->topic);
                     // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                     if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
@@ -851,8 +852,9 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                     }
                     return;
                 }
-                if (cmd.command_arg.size() == 1)
+                else if (cmd.command_arg.size() == 1)
                 {
+                    std::cout<<"dkhel cond 2"<<std::endl;
                     std::string topicmsg = RPL_NOTOPIC(client.nickname, cmd.channel[0].first);
                     // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                     if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
