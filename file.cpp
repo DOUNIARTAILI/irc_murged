@@ -6,7 +6,7 @@
 /*   By: drtaili <drtaili@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:29:41 by drtaili           #+#    #+#             */
-/*   Updated: 2024/03/17 23:32:37 by drtaili          ###   ########.fr       */
+/*   Updated: 2024/03/18 01:22:53 by drtaili          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,9 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
     if (cmd.command_arg.size() > 0)
     {
         while (i < cmd.channel.size())
-        {
+        { 
+            if (cmd.channel[i].first[0] != '#')
+                cmd.channel[i].first = '#' + cmd.channel[i].first;
             std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
             if (it != chan.end())
             {
@@ -148,7 +150,7 @@ void join(std::vector<Channel> &chan, Command &cmd, Clientx &client)
             {
                 if (cmd.channel[i].first[0] != '#')
                 {
-                    std::string notonchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[0].first);
+                    std::string notonchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[i].first);
                     if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                     {
                         perror("send");
@@ -661,42 +663,47 @@ std::string tostr(int n)
 void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list<Clientx> &clients)
 {
     (void)clients;
-    size_t i = 0;
+
     if (cmd.command_arg.size() > 0)
     {
-        while (i < cmd.channel.size())
-        {
             // if (cmd.channel[i].first[0] != '#')
             //     cmd.channel[i].first = '#' + cmd.channel[i].first;
-            std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[i].first));
+            std::vector<Channel>::iterator it = std::find(chan.begin(), chan.end(), Channel(cmd.channel[0].first));
             if (it != chan.end())
             {
                 if (!it->is_user(client.nickname))
                 {
-                    std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, cmd.channel[i].first);
+                    std::string notonchannel = ERR_NOTONCHANNEL(client.nickname, it->name);
+                    // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                     if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     return;
                 }
-                if (cmd.command_arg.size() == 1 && !chan[i].topic.empty())
+                std::cout << "|" << cmd.topic << "|" << std::endl;
+                if (cmd.command_arg.size() == 1 && !it->topic.empty())
                 {
+                    std::cout<<"dkhel cond 1"<<std::endl;
                     std::string topicmsg = RPL_TOPIC(client.nickname, it->name, it->topic);
+                    // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                     if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     std::string topictime = RPL_TOPICWHOTIME(client.nickname, it->name, it->topicsetter, tostr(it->topic_time));
+                    // write(client.c_fd, topictime.c_str(), topictime.size());
                     if (send(client.c_fd, topictime.c_str(), topictime.size(), 0) == -1)
                     {
                         perror("send");
                     }
                     return;
                 }
-                else if (cmd.command_arg.size() == 1)
+                else if (cmd.command_arg.size() == 1 && it->topic.empty())
                 {
-                    std::string topicmsg = RPL_NOTOPIC(client.nickname, cmd.channel[0].first);
+                    std::cout<<"dkhel cond 2"<<std::endl;
+                    std::string topicmsg = RPL_NOTOPIC(client.nickname, it->name);
+                    // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                     if (send(client.c_fd, topicmsg.c_str(), topicmsg.size(), 0) == -1)
                     {
                         perror("send");
@@ -710,6 +717,7 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                         if (it->is_operator(client.nickname))
                         {
                             std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
+                            // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                             broadcast(it->user_list, topicmsg);
                             it->topic = cmd.topic;
                             it->topicsetter = client.nickname;
@@ -718,7 +726,8 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                         }
                         else if (!it->is_operator(client.nickname) && it->is_user(client.nickname))
                         {
-                            std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
+                            std::string chanoprivsneeded = ERR_CHANOPRIVSNEEDED(client.nickname, it->name);
+                            // write(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size());
                             if (send(client.c_fd, chanoprivsneeded.c_str(), chanoprivsneeded.size(), 0) == -1)
                             {
                                 perror("send");
@@ -729,6 +738,7 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                     if (it->is_user(client.nickname))
                     {
                         std::string topicmsg = RPL_TOPIC(client.nickname, it->name, cmd.topic);
+                        // write(client.c_fd, topicmsg.c_str(), topicmsg.size());
                         broadcast(it->user_list, topicmsg);
                         it->topic = cmd.topic;
                         it->topic_time = time(NULL);
@@ -736,7 +746,8 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
                     }
                     else
                     {
-                        std::string notonchannel = ERR_CHANOPRIVSNEEDED(client.nickname, cmd.channel[i].first);
+                        std::string notonchannel = ERR_CHANOPRIVSNEEDED(client.nickname, it->name);
+                        // write(client.c_fd, notonchannel.c_str(), notonchannel.size());
                         if (send(client.c_fd, notonchannel.c_str(), notonchannel.size(), 0) == -1)
                         {
                             perror("send");
@@ -746,18 +757,18 @@ void topicf(std::vector<Channel> &chan, Command &cmd, Clientx &client, std::list
             }
             else
             {
-                std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, cmd.channel[i].first);
+                std::string nosuchchannel = ERR_NOSUCHCHANNEL(client.nickname, it->name);
+                // write(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size());
                 if (send(client.c_fd, nosuchchannel.c_str(), nosuchchannel.size(), 0) == -1)
                 {
                     perror("send");
                 }
             }
-            i++;
-        }
     }
     else
     {
         std::string moreparams = ERR_NEEDMOREPARAMS(client.nickname, "TOPIC");
+        // write(client.c_fd, moreparams.c_str(), moreparams.size());
         if (send(client.c_fd, moreparams.c_str(), moreparams.size(), 0) == -1)
         {
             perror("send");
@@ -1305,9 +1316,9 @@ void bot(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         }
         return;
     }   
-    std::string arg[4] = {"time", "quote", "fact", "dad_joke"};
+    std::string arg[3] = {"time", "quote", "fact"};
     int i = 0;
-    while (i < 4)
+    while (i < 3)
     {
         if (arg[i] == cmd.bot_arg)
             break;
@@ -1377,63 +1388,6 @@ void bot(std::vector<Channel> &chan, Command &cmd, Clientx &client)
         }
         std::string start_tag = "<blockquote>";
         std::string end_tag = "</blockquote>";
-
-        // Find the starting position of the quote
-        size_t start_pos = data.find(start_tag);
-        if (start_pos == std::string::npos)
-        {
-            std::cerr << "Error: Could not find starting quote tag." << std::endl;
-            return;
-        }
-
-        // Find the ending position of the quote
-        size_t end_pos = data.find(end_tag, start_pos + start_tag.length());
-        if (end_pos == std::string::npos)
-        {
-            std::cerr << "Error: Could not find ending quote tag." << std::endl;
-            return;
-        }
-
-        // Extract the quote text
-        std::string quote = data.substr(start_pos + start_tag.length(), end_pos - (start_pos + start_tag.length()));
-
-        // Remove any leading/trailing whitespace
-        quote.erase(0, quote.find_first_not_of(" \t"));
-        quote.erase(quote.find_last_not_of(" \t") + 1);
-
-        quote += '\n';
-        std::string motod = RPL_MOTD(client.nickname, quote);
-        if (send(client.c_fd, motod.c_str(), motod.length(), 0) == -1)
-        {
-            perror("send");
-        }
-        break;
-    }
-    case 3:
-    {
-        CURL *curl;
-        std::string data;
-        curl = curl_easy_init();
-        if (curl)
-        {
-            // Use the I Can Haz Dad Joke API endpoint for a random joke
-            curl_easy_setopt(curl, CURLOPT_URL, "https://icanhazdadjoke.com/");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
-            // Set the header to accept JSON response
-            struct curl_slist *headers = NULL;
-            headers = curl_slist_append(headers, "Accept: application/json");
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-            CURLcode res = curl_easy_perform(curl);
-            if (res != CURLE_OK)
-            {
-                // Handle error
-            }
-            curl_slist_free_all(headers); // Don't forget to free the headers!
-            curl_easy_cleanup(curl);
-        }
-        std::string start_tag = "joke\":";
-        std::string end_tag = ",\"status\":200";
 
         // Find the starting position of the quote
         size_t start_pos = data.find(start_tag);
